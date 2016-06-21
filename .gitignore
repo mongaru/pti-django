@@ -5,3 +5,4 @@ local/
 pip-selfcheck.json
 db.sqlite3
 *.pyc
+datosmis/

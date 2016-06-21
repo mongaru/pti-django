@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <div class="container">
+
+        <h1 id="helper-classes" class="page-header">Contacto</h1>
+
+        <form class="form-horizontal" method="POST">
+
+          {% csrf_token %}
+
+          {% if form.errors %}
+              <p><span>Se han encontrado los siguientes errores</span></p>
+              <ul class="user-msg error">
+              {% for field in form %}
+                  {% for error in field.errors %}
+                      <li>
+                        {% if field != '__all__' %}
+                          <strong>{{ field.label }}:</strong>
+                        {% endif %}
+                        {{ error }}
+                      </li>
+                  {% endfor %}
+              {% endfor %}
+              </ul>
+          {% endif %}
+
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Nombre</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Nombre">
+              {{ form.nombre|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Apellido</label>
+            <div class="col-sm-10">
+              <input type="email" class="form-control" id="apellido" name="apellido" placeholder="Apellido">
+              {{ form.apellido|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">Direccion</label>
+            <div class="col-sm-10">
+              {{ form.direccion|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">Apodo</label>
+            <div class="col-sm-10">
+              {{ form.apodo|add_class:"form-control" }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-default">Save</button>
+            </div>
+          </div>
+        </form>
+
+    </div> <!-- /container -->
+
+
+{% endblock %}
+

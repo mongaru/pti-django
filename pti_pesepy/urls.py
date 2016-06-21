@@ -23,11 +23,14 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
+    url(r'^reporte/anual/tabla', analisisVariablesViews.potencial_estacion),
+    url(r'^reporte/anual', analisisVariablesViews.reporte_anual),
+
     # comentar las url para las vistas de registro que trae django auth
     # url(r'^accounts/profile/',  RedirectView.as_view(url='/', permanent=False)),
     # url(r'^accounts/', include('registration.backends.default.urls')),
 
-    # url(r'^$', home, name='home'),
+    url(r'^$', analisisVariablesViews.home, name='home'),
     # url(r'^register', register, name='register'),
 
     # url(r'^contact/add', vialidadViews.contactoAdd, name='contactoAdd'),

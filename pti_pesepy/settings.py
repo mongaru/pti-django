@@ -54,6 +54,8 @@ MIDDLEWARE_CLASSES = [
 
 ROOT_URLCONF = 'pti_pesepy.urls'
 
+LOGIN_URL = '/login/'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -124,3 +126,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+ESTACION_DATO_CARPETA = '/home/vagrant/Code/git-pti/'
+
+# https://docs.djangoproject.com/en/1.8/topics/email/
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Host for sending e-mail.
+EMAIL_HOST = 'smtp.mandrillapp.com'
+# Port for sending e-mail.
+EMAIL_PORT = 587
+# Optional SMTP authentication information for EMAIL_HOST.
+EMAIL_HOST_USER = 'jcjuli@gmail.com'
+EMAIL_HOST_PASSWORD = 'jM1uXLwG9DgLDd5xbeggcA'
+EMAIL_USE_TLS = True
+#EMAIL_USE_SSL = True
+EMAIL_TIMEOUT = 30
+DEFAULT_FROM_EMAIL = 'pti@pti.com'
+PTI_ADMIN_EMAIL = 'jcjuli@gmail.com'
