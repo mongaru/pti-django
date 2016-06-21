@@ -15,7 +15,25 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+# from vialidad.views import (home, login, register)
+from analisis_variables import views as analisisVariablesViews
+
+admin.autodiscover()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    # comentar las url para las vistas de registro que trae django auth
+    # url(r'^accounts/profile/',  RedirectView.as_view(url='/', permanent=False)),
+    # url(r'^accounts/', include('registration.backends.default.urls')),
+
+    # url(r'^$', home, name='home'),
+    # url(r'^register', register, name='register'),
+
+    # url(r'^contact/add', vialidadViews.contactoAdd, name='contactoAdd'),
+
+    # url(r'^login', vialidadViews.loginUser),
+    # url(r'^register', 'vialidad.views.registerUser'),
+    # url(r'^logout', vialidadViews.logoutUser),
+    # url(r'^about', views.about),
 ]
