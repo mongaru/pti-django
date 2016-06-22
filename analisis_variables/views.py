@@ -2,6 +2,7 @@ import json
 import pprint
 import calendar
 import math
+import csv
 from datetime import datetime, timedelta
 
 from django.db.models import Min, Max, Sum
@@ -13,6 +14,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.http import HttpResponse
 
 from analisis_variables.models import Station, Record
 from django.db.models import Q
@@ -32,64 +34,61 @@ def reporte_anual(request):
     return render_to_response('reporte_anual.html', dataToRender)
 
 
-def reporte_anual_tabla(request):
+def reporte_anual_generacion(request):
+    
+	formato = request.GET.get('formato', 'tabla')
 
 	idEstaciones = request.GET.get('estaciones', '1')
 	idEstaciones = idEstaciones.split('-')
 
-    try:
-        station = Station.objects.get(pk=id_estacion)
-    except Station.DoesNotExist:
-        response_data = {}
-        response_data['status'] = 'error'
-        response_data['message'] = 'No existe la estacion indicada'
-        return HttpResponse(json.dumps(response_data), content_type="application/json")
+	desde = request.GET.get('desde', datetime.today().strftime("%Y-%m-%d"))
+	desde = datetime.strptime(desde, '%Y-%m-%d')
+	desde = desde.replace(hour=00, minute=01)
+	pprint.pprint(desde)
 
-    desde = request.GET.get('desde', datetime.today().strftime("%Y-%m-%d"))
-    desde = datetime.strptime(desde, '%Y-%m-%d')
-    desde = desde.replace(hour=00, minute=01)
-    pprint.pprint(desde)
+	fechaHastaDefault = datetime.today() - timedelta(days=10)
+	hasta = request.GET.get('hasta', fechaHastaDefault.strftime("%Y-%m-%d"))
+	hasta = datetime.strptime(hasta, '%Y-%m-%d')
+	hasta = hasta.replace(hour=23, minute=59)
+	pprint.pprint(hasta)
 
-    fechaHastaDefault = datetime.today() - timedelta(days=10)
-    hasta = request.GET.get('hasta', fechaHastaDefault.strftime("%Y-%m-%d"))
-    hasta = datetime.strptime(hasta, '%Y-%m-%d')
-    hasta = hasta.replace(hour=23, minute=59)
-    pprint.pprint(hasta)
+	titulos = None
+	valores = []
 
-    #valores anuales
+	for id_estacion in idEstaciones:
+		valoresEstacion = _generar_reporte_anual_estacion(desde, hasta, id_estacion)
 
-    anualVel10 = _calculo_anual(desde, hasta, 'barometer')
-    estacionVel10 = _calculo_por_estacion_anio(desde, hasta, 'barometer')
+		if (len(valoresEstacion) > 0 and titulos == None):
+			titulos = valoresEstacion['titulos']
 
-    estacionVel10Titulos = []
-    for resultadoEstacion in estacionVel10:
-        estacionVel10Titulos.append('estacionVel10 - ' + resultadoEstacion['estacion'])
+		if (len(valoresEstacion) > 0):
+			valores.append(valoresEstacion['valores'])
+		else:
+			valores.append(valoresEstacion)
 
-    mensualVel10 = _calculo_mensual(desde, hasta, 'barometer')
 
-    mensualVel10Titulos = []
-    for resultadoMes in mensualVel10:
-        mensualVel10Titulos.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+	dataToRender = {
+		'datosExportar' : valores,
+		'titulos' : titulos
+	}
 
-    datosExportar = [
-        {'campo' : 'anualVel10Max', 'valor' : anualVel10['max']},
-        {'campo' : 'anualVel10Med', 'valor' : anualVel10['min']},
-        {'campo' : 'anualVel10Min', 'valor' : anualVel10['avg']}
-    ]
+	if (formato == 'tabla'):
+		return render_to_response('reporte_anual_tabla.html', dataToRender)
+	
+	if (formato == 'csv'):
+		# Create the HttpResponse object with the appropriate CSV header.
+	    response = HttpResponse(content_type='text/csv')
+	    response['Content-Disposition'] = 'attachment; filename="reporte_anual.csv"'
 
-    for resultadoEstacion in estacionVel10:
-        datosExportar.append({'campo' : 'estacionVel10_' + resultadoEstacion['estacion'], 'valor' : resultadoEstacion['avg']['avg']})
+	    writer = csv.writer(response)
 
-    for resultadoMes in mensualVel10:
-        datosExportar.append({'campo' : 'mensualVel10_' + _nombre_mes(resultadoMes['month']), 'valor' : resultadoMes['avg']['avg']})
+	    writer.writerow(titulos)
+	    
+	    for fila in valores:
+	    	writer.writerow(fila)
 
-    dataToRender = {
-        'datosExportar' : datosExportar,
-        'estacionVel10Titulos' : estacionVel10Titulos,
-        'mensualVel10Titulos' : mensualVel10Titulos
-    }
+	    return response
 
-    return render_to_response('reporte_anual_tabla.html', dataToRender)
     # return render_to_response('home.html', dict(respuestaData.items() + _getUserData(request).items()))
 
 # montesqie
@@ -101,57 +100,118 @@ def reporte_anual_tabla(request):
 def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
 
 	try:
-        station = Station.objects.get(pk=id_estacion)
-    except Station.DoesNotExist:
-        return []
+		station = Station.objects.get(pk=id_estacion)
+	except Station.DoesNotExist:
+		return []
 
 	#valores anuales
-    anualVel10 = _calculo_anual(desde, hasta, 'barometer', station)
-    estacionVel10 = _calculo_por_estacion_anio(desde, hasta, 'barometer', station)
+	anualVel10 = _calculo_anual(desde, hasta, '"windSpeed"', station)
+	anualWindDir10 = _calculo_anual(desde, hasta, '"windDir"', station)
 
-    estacionVel10Titulos = []
-    for resultadoEstacion in estacionVel10:
-        estacionVel10Titulos.append('estacionVel10 - ' + resultadoEstacion['estacion'])
+	anualVel50 = _calculo_anual(desde, hasta, '"windSpeed"', station)
+	anualWindDir50 = _calculo_anual(desde, hasta, '"windDir"', station)
 
-    mensualVel10 = _calculo_mensual(desde, hasta, 'barometer', station)
+	anualVel80 = _calculo_anual(desde, hasta, '"windSpeed"', station)
+	anualWindDir80 = _calculo_anual(desde, hasta, '"windDir"', station)
 
-    mensualVel10Titulos = []
-    for resultadoMes in mensualVel10:
-        mensualVel10Titulos.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+	anualPresion = _calculo_anual(desde, hasta, 'pressure', station)
+	anualRadiacion = _calculo_anual(desde, hasta, 'radiation', station)
+	anualHumedad = _calculo_anual(desde, hasta, '"outHumidity"', station)
+	anualDensidad = _calculo_anual(desde, hasta, 'rain', station)
+	anualTemp2 = _calculo_anual(desde, hasta, '"outTemp"', station)
 
-    datosExportar = [
-        {'campo' : 'anualVel10Max', 'valor' : anualVel10['max']},
-        {'campo' : 'anualVel10Med', 'valor' : anualVel10['min']},
-        {'campo' : 'anualVel10Min', 'valor' : anualVel10['avg']}
-    ]
+	estacionVel10 = _calculo_por_estacion_anio(desde, hasta, '"windSpeed"', station)
+	estacionVel50 = _calculo_por_estacion_anio(desde, hasta, '"windSpeed"', station)
+	estacionRadiacion = _calculo_por_estacion_anio(desde, hasta, 'radiation', station)
+	
+	mensualVel10 = _calculo_mensual(desde, hasta, '"windSpeed"', station)
+	mensualRadiacion = _calculo_mensual(desde, hasta, 'radiation', station)
 
-    for resultadoEstacion in estacionVel10:
-        datosExportar.append({'campo' : 'estacionVel10_' + resultadoEstacion['estacion'], 'valor' : resultadoEstacion['avg']['avg']})
+	# colecta de titulos para las columnas
+	titulosExportar = [
+		'anualVel10Max', 'anualVel10Med', 'anualVel10Min',
+		'anualDir10Max', 'anualDir10Med', 'anualDir10Min',
+		'anualVel50Max', 'anualVel50Med', 'anualVel50Min',
+		'anualDir50Max', 'anualDir50Med', 'anualDir50Min',
+		'anualVel80Max', 'anualVel80Med', 'anualVel80Min',
+		'anualDir80Max', 'anualDir80Med', 'anualDir80Min',
+		'anualPresionMax', 'anualPresionMed', 'anualPresionMin',
+		'anualRadiacionMax', 'anualRadiacionMed', 'anualRadiacionMin',
+		'anualHumedadMax', 'anualHumedadMed', 'anualHumedadMin',
+		'anualDensidadMax', 'anualDensidadMed', 'anualDensidadMin',
+		'anualTemp2Max', 'anualTemp2Med', 'anualTemp2Min'
+	]
 
-    for resultadoMes in mensualVel10:
-        datosExportar.append({'campo' : 'mensualVel10_' + _nombre_mes(resultadoMes['month']), 'valor' : resultadoMes['avg']['avg']})
+	for resultadoEstacion in estacionVel10:
+		titulosExportar.append('estacionVel10 - ' + resultadoEstacion['estacion'])
 
-    dataToRender = {
-        'datosExportar' : datosExportar,
-        'estacionVel10Titulos' : estacionVel10Titulos,
-        'mensualVel10Titulos' : mensualVel10Titulos
-    }
+	for resultadoEstacion in estacionVel50:
+		titulosExportar.append('estacionVel50 - ' + resultadoEstacion['estacion'])
 
-    return dataToRender
+	for resultadoEstacion in estacionRadiacion:
+		titulosExportar.append('estacionRadiacion - ' + resultadoEstacion['estacion'])
+
+	for resultadoMes in mensualVel10:
+		titulosExportar.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+
+	for resultadoMes in mensualRadiacion:
+		titulosExportar.append('mensualRadiacion - ' + _nombre_mes(resultadoMes['month']))
+
+
+	# colecta de valores en el mismo orden de los titulos para la exportacion a csv
+	datosExportar = [
+		anualVel10['max'], anualVel10['avg'], anualVel10['min'],
+		anualWindDir10['max'], anualWindDir10['avg'], anualWindDir10['min'],
+		anualVel50['max'], anualVel50['avg'], anualVel50['min'],
+		anualWindDir50['max'], anualWindDir50['avg'], anualWindDir50['min'],
+		anualVel80['max'], anualVel80['avg'], anualVel80['min'],
+		anualWindDir80['max'], anualWindDir80['avg'], anualWindDir80['min'],
+		anualPresion['max'], anualPresion['avg'], anualPresion['min'],
+		anualRadiacion['max'], anualRadiacion['avg'], anualRadiacion['min'],
+		anualHumedad['max'], anualHumedad['avg'], anualHumedad['min'],
+		anualDensidad['max'], anualDensidad['avg'], anualDensidad['min'],
+		anualTemp2['max'], anualTemp2['avg'], anualTemp2['min']
+	]
+
+	for resultadoEstacion in estacionVel10:
+		datosExportar.append(resultadoEstacion['avg']['avg'])
+
+	for resultadoEstacion in estacionVel50:
+		datosExportar.append(resultadoEstacion['avg']['avg'])
+
+	for resultadoEstacion in estacionRadiacion:
+		datosExportar.append(resultadoEstacion['avg']['avg'])
+
+	for resultadoMes in mensualVel10:
+		datosExportar.append(resultadoMes['avg']['avg'])
+
+	for resultadoMes in mensualRadiacion:
+		datosExportar.append(resultadoMes['avg']['avg'])
+
+	for i in range(0, len(datosExportar)):
+		datosExportar[i] = _redondeo(datosExportar[i])
+
+
+	datosResultados = {
+		'titulos' : titulosExportar,
+		'valores' : datosExportar
+	}
+
+	return datosResultados
 
 
 def _calculo_anual(fecha_desde, fecha_hasta, variable, station):
 
 	fecha_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
-    fecha_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
+	fecha_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
 
-    # select to_char(a."dateTime", 'YYYY-MM-DD-HH24') as fechaIndice, avg(a.barometer), avg(a."outTemp") from stations_data as a where a.id < 11000 group by fechaIndice order by fechaIndice asc
-    query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and id_station = %i'
-    cursor = connection.cursor()
-    cursor.execute(query, [fecha_desde, fecha_hasta, station.pk])
-    rows = _fields_to_dict(cursor)
+	# select to_char(a."dateTime", 'YYYY-MM-DD-HH24') as fechaIndice, avg(a.barometer), avg(a."outTemp") from stations_data as a where a.id < 11000 group by fechaIndice order by fechaIndice asc
+	query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+	cursor = connection.cursor()
+	cursor.execute(query, [fecha_desde, fecha_hasta, station.pk])
+	rows = _fields_to_dict(cursor)
 
-    return rows[0]
+	return rows[0]
     # rows = cursor.fetchall()
 
     # for row in rows:
@@ -175,7 +235,7 @@ def _calculo_mensual(fecha_inicio, fecha_fin, variable, station):
         str_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
         str_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.id_station = %i'
+        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
         cursor = connection.cursor()
         cursor.execute(query, [str_desde, str_hasta, station.pk])
         rows = _fields_to_dict(cursor)
@@ -208,7 +268,7 @@ def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable, station):
         str_desde = estacion['inicio'].strftime("%Y-%m-%d %H:%M:%S")
         str_hasta = estacion['fin'].strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.id_station = %i'
+        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
         cursor = connection.cursor()
         cursor.execute(query, [str_desde, str_hasta, station.pk])
         rows = _fields_to_dict(cursor)
@@ -310,3 +370,10 @@ def _fields_to_dict(cursor):
 def _nombre_mes(mes):
     nombreMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
     return nombreMeses[mes - 1]
+
+def _redondeo(valorFloat):
+	if (valorFloat != None):
+	    # "{0:.2f}".format(d.outtemp)
+	    return math.ceil(valorFloat*100)/100
+	else:
+		return None

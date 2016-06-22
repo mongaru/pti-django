@@ -33,25 +33,19 @@
 	<table>
 		<thead>
             <tr>
-                <th>Vel 10 max</th>
-                <th>Vel 10 med</th>
-                <th>Vel 10 min</th>
-                
-                {% for titulo in estacionVel10Titulos %}
-			        <th>{{ titulo }}</th>
-			    {% endfor %}
-
-			    {% for titulo in mensualVel10Titulos %}
-			        <th>{{ titulo }}</th>
-			    {% endfor %}
+                {% for titulo in titulos %}
+                    <th>{{ titulo }}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
-        	<tr>
-        		{% for dato in datosExportar %}
-        			<td>{{ dato.valor|floatformat:2 }}</td>
-        		{% endfor %}
-        	</tr>
+    		{% for fila in datosExportar %}
+                <tr>
+                    {% for dato in fila %}
+                        <td>{{ dato|floatformat:2 }}</td>
+                    {% endfor %}
+                </tr>
+    		{% endfor %}
         </tbody>
 	</table>
 </body>
