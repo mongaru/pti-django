@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 # from vialidad.views import (home, login, register)
 from analisis_variables import views as analisisVariablesViews
+from analisis_variables import periodo_controller as analisisVariablesPeriodo
 
 admin.autodiscover()
 
@@ -25,6 +26,9 @@ urlpatterns = [
 
     url(r'^reporte/anual/tabla', analisisVariablesViews.reporte_anual_generacion),
     url(r'^reporte/anual', analisisVariablesViews.reporte_anual),
+    
+    url(r'^reporte/periodo/tabla', analisisVariablesPeriodo.reporte_periodo_generacion),
+    url(r'^reporte/periodo', analisisVariablesPeriodo.reporte_periodo),
 
     # comentar las url para las vistas de registro que trae django auth
     # url(r'^accounts/profile/',  RedirectView.as_view(url='/', permanent=False)),

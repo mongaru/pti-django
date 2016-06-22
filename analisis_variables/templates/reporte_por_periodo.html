@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <script>
+        $(document).ready(function(){
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                todayBtn: true
+            });
+
+            $('#formReporteAnual').submit(function(){
+
+                if ($('#estacion').val() == null)
+                {
+                    alert('Debe seleccionar por lo menos una estacion');
+                    return false;
+                }
+
+                var estaciones = $('#estacion').val();
+                var desde = $('#fecha_desde').val();
+                var hasta = $('#fecha_hasta').val();
+                var formato = $('#formato').val();
+                var periodo = $('#periodo').val();
+
+                var url = '/reporte/periodo/tabla?desde='+desde+'&hasta='+hasta+'&estacion='+estaciones+'&formato='+formato+'&periodo='+periodo;
+
+                window.location.href = url;
+
+                return false;
+            });
+
+        });
+    </script>
+
+    <div class="container">
+
+        <h1 id="helper-classes" class="page-header">Reporte por Periodo</h1>
+
+        <form id="formReporteAnual" class="form-horizontal" method="GET">
+
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Estaciones</label>
+            <div class="col-sm-10">
+                <select id="estacion" name="estacion" class="form-control">
+                    {% for estacion in estaciones %}
+                        <option value="{{ estacion.pk }}">{{ estacion.name }}</option>
+                    {% endfor %}    
+                </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">Desde</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control datepicker" id="fecha_desde" name="fecha_desde" placeholder="Fecha Desde">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">Hasta</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control datepicker" id="fecha_hasta" name="fecha_hasta" placeholder="Fecha Hasta">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">Periodo</label>
+            <div class="col-sm-10">
+                <select id="periodo" name="periodo" class="form-control">
+                    <option value="hora">Por hora</option>
+                    <option value="dia">Por dia</option>
+                    <option value="mes">Por mes</option>
+                </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">Formato de Salida</label>
+            <div class="col-sm-10">
+                <select id="formato" name="formato" class="form-control">
+                    <option value="tabla">Tabla</option>
+                    <option value="csv">CSV</option>
+                </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+              <button type="submit" class="btn btn-default">Generar</button>
+            </div>
+          </div>
+        </form>
+
+    </div> <!-- /container -->
+
+
+{% endblock %}
+
