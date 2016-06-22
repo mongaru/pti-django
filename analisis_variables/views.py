@@ -32,7 +32,11 @@ def reporte_anual(request):
     return render_to_response('reporte_anual.html', dataToRender)
 
 
-def potencial_estacion(request, id_estacion=0):
+def reporte_anual_tabla(request):
+
+	idEstaciones = request.GET.get('estaciones', '1')
+	idEstaciones = idEstaciones.split('-')
+
     try:
         station = Station.objects.get(pk=id_estacion)
     except Station.DoesNotExist:
@@ -52,12 +56,9 @@ def potencial_estacion(request, id_estacion=0):
     hasta = hasta.replace(hour=23, minute=59)
     pprint.pprint(hasta)
 
-    str_desde = desde.strftime("%Y-%m-%d %H:%M:%S")
-    str_hasta = hasta.strftime("%Y-%m-%d %H:%M:%S")
-
     #valores anuales
 
-    anualVel10 = _calculo_anual(str_desde, str_hasta, 'barometer')
+    anualVel10 = _calculo_anual(desde, hasta, 'barometer')
     estacionVel10 = _calculo_por_estacion_anio(desde, hasta, 'barometer')
 
     estacionVel10Titulos = []
@@ -97,13 +98,57 @@ def potencial_estacion(request, id_estacion=0):
 # lenin
 
 
+def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
+
+	try:
+        station = Station.objects.get(pk=id_estacion)
+    except Station.DoesNotExist:
+        return []
+
+	#valores anuales
+    anualVel10 = _calculo_anual(desde, hasta, 'barometer', station)
+    estacionVel10 = _calculo_por_estacion_anio(desde, hasta, 'barometer', station)
+
+    estacionVel10Titulos = []
+    for resultadoEstacion in estacionVel10:
+        estacionVel10Titulos.append('estacionVel10 - ' + resultadoEstacion['estacion'])
+
+    mensualVel10 = _calculo_mensual(desde, hasta, 'barometer', station)
+
+    mensualVel10Titulos = []
+    for resultadoMes in mensualVel10:
+        mensualVel10Titulos.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+
+    datosExportar = [
+        {'campo' : 'anualVel10Max', 'valor' : anualVel10['max']},
+        {'campo' : 'anualVel10Med', 'valor' : anualVel10['min']},
+        {'campo' : 'anualVel10Min', 'valor' : anualVel10['avg']}
+    ]
+
+    for resultadoEstacion in estacionVel10:
+        datosExportar.append({'campo' : 'estacionVel10_' + resultadoEstacion['estacion'], 'valor' : resultadoEstacion['avg']['avg']})
+
+    for resultadoMes in mensualVel10:
+        datosExportar.append({'campo' : 'mensualVel10_' + _nombre_mes(resultadoMes['month']), 'valor' : resultadoMes['avg']['avg']})
+
+    dataToRender = {
+        'datosExportar' : datosExportar,
+        'estacionVel10Titulos' : estacionVel10Titulos,
+        'mensualVel10Titulos' : mensualVel10Titulos
+    }
+
+    return dataToRender
 
 
-def _calculo_anual(fecha_desde, fecha_hasta, variable):
+def _calculo_anual(fecha_desde, fecha_hasta, variable, station):
+
+	fecha_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
+    fecha_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
+
     # select to_char(a."dateTime", 'YYYY-MM-DD-HH24') as fechaIndice, avg(a.barometer), avg(a."outTemp") from stations_data as a where a.id < 11000 group by fechaIndice order by fechaIndice asc
-    query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s'
+    query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and id_station = %i'
     cursor = connection.cursor()
-    cursor.execute(query, [fecha_desde, fecha_hasta])
+    cursor.execute(query, [fecha_desde, fecha_hasta, station.pk])
     rows = _fields_to_dict(cursor)
 
     return rows[0]
@@ -112,7 +157,7 @@ def _calculo_anual(fecha_desde, fecha_hasta, variable):
     # for row in rows:
     #     pprint.pprint(row)
 
-def _calculo_mensual(fecha_inicio, fecha_fin, variable):
+def _calculo_mensual(fecha_inicio, fecha_fin, variable, station):
 
     fecha_desde = fecha_inicio
     ultimo_dia = calendar.monthrange(fecha_desde.year, fecha_desde.month)[1]
@@ -130,9 +175,9 @@ def _calculo_mensual(fecha_inicio, fecha_fin, variable):
         str_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
         str_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s'
+        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.id_station = %i'
         cursor = connection.cursor()
-        cursor.execute(query, [str_desde, str_hasta])
+        cursor.execute(query, [str_desde, str_hasta, station.pk])
         rows = _fields_to_dict(cursor)
 
         resultadosMes.append({'month' : fecha_desde.month, 'year' : fecha_desde.year, 'avg' : rows[0]})
@@ -151,7 +196,7 @@ def _calculo_mensual(fecha_inicio, fecha_fin, variable):
     # pprint.pprint(resultadosMes)
     return resultadosMes
 
-def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable):
+def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable, station):
 
     fechasEstaciones = _fechasParaEstaciones(fecha_inicio, fecha_fin)
 
@@ -163,9 +208,9 @@ def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable):
         str_desde = estacion['inicio'].strftime("%Y-%m-%d %H:%M:%S")
         str_hasta = estacion['fin'].strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s'
+        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.id_station = %i'
         cursor = connection.cursor()
-        cursor.execute(query, [str_desde, str_hasta])
+        cursor.execute(query, [str_desde, str_hasta, station.pk])
         rows = _fields_to_dict(cursor)
 
         resultadosMes.append({'month' : estacion['inicio'].month, 'year' : estacion['inicio'].year, 'avg' : rows[0], 'estacion' : estacion['estacion']})

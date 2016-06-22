@@ -23,7 +23,7 @@ admin.autodiscover()
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
-    url(r'^reporte/anual/tabla', analisisVariablesViews.potencial_estacion),
+    url(r'^reporte/anual/tabla', analisisVariablesViews.reporte_anual_tabla),
     url(r'^reporte/anual', analisisVariablesViews.reporte_anual),
 
     # comentar las url para las vistas de registro que trae django auth
