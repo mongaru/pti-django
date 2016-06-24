@@ -10,7 +10,21 @@
                 todayBtn: true
             });
 
-            $('#formReporteAnual').submit(function(){
+            $('#formato').change(function(){
+                if ($(this).val() == 'grafico')
+                {
+                    $('#variableInput').show();
+                }
+                else
+                {
+                    $('#variableInput').hide();
+                }
+            });
+
+            $('#formReporteAnual').submit(function(e){
+
+                e.preventDefault();
+                e.stopPropagation();
 
                 if ($('#estacion').val() == null)
                 {
@@ -23,10 +37,20 @@
                 var hasta = $('#fecha_hasta').val();
                 var formato = $('#formato').val();
                 var periodo = $('#periodo').val();
+                var variable = $('#variable').val();
 
                 var url = '/reporte/periodo/tabla?desde='+desde+'&hasta='+hasta+'&estacion='+estaciones+'&formato='+formato+'&periodo='+periodo;
 
-                window.location.href = url;
+                if (formato == 'grafico')
+                {
+                    // cargar datos y generar grafico
+                    EstacionGrafico.graficoPorEstacion(url, variable);
+                }
+                else
+                {
+                    window.location.href = url;    
+                }
+                
 
                 return false;
             });
@@ -36,7 +60,7 @@
 
     <div class="container">
 
-        <h1 id="helper-classes" class="page-header">Reporte por Periodo</h1>
+        <h1 id="helper-classes" class="page-header">Reporte por Estacion</h1>
 
         <form id="formReporteAnual" class="form-horizontal" method="GET">
 
@@ -63,7 +87,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="inputPassword3" class="col-sm-2 control-label">Periodo</label>
+            <label for="inputPassword3" class="col-sm-2 control-label">Promedio</label>
             <div class="col-sm-10">
                 <select id="periodo" name="periodo" class="form-control">
                     <option value="hora">Por hora</option>
@@ -78,6 +102,18 @@
                 <select id="formato" name="formato" class="form-control">
                     <option value="tabla">Tabla</option>
                     <option value="csv">CSV</option>
+                    <option value="grafico">Grafico</option>
+                </select>
+            </div>
+          </div>
+          <div class="form-group" style="display: none;" id="variableInput">
+            <label for="inputPassword3" class="col-sm-2 control-label">Variable</label>
+            <div class="col-sm-10">
+                <select id="variable" name="variable" class="form-control">
+                    <option value="winddir">Viento Direccion</option>
+                    <option value="windspeed">Viento Velocidad</option>
+                    <option value="temperatura">Temperatura</option>
+                    <option value="presion">presion</option>
                 </select>
             </div>
           </div>
@@ -88,6 +124,8 @@
             </div>
           </div>
         </form>
+
+        <div class="chart-panel pad3"></div>
 
     </div> <!-- /container -->
 

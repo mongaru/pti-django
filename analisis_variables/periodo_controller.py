@@ -33,26 +33,6 @@ def reporte_periodo(request):
 
     return render_to_response('reporte_por_periodo.html', dataToRender)
 
-
-def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):
-	fecha_desde = desde.strftime("%Y-%m-%d %H:%M:%S")
-	fecha_hasta = hasta.strftime("%Y-%m-%d %H:%M:%S")
-
-	# mascara por mes del query
-	mascaraPeriodo = 'YYYY-MM-DD-HH24'
-	if (periodo == 'dia'):
-		mascaraPeriodo = 'YYYY-MM-DD'
-	if (periodo == 'mes'):
-		mascaraPeriodo = 'YYYY-MM'
-
-	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed"  from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s group by fechaIndice order by fechaIndice asc'
-	cursor = connection.cursor()
-	cursor.execute(query, [fecha_desde, fecha_hasta, id_estacion])
-	# rows = _fields_to_dict(cursor)
-	columns = [col[0] for col in cursor.description]
-
-	return {'titulos' : columns, 'valores' : cursor.fetchall()}
-
 def reporte_periodo_generacion(request):
     
 	formato = request.GET.get('formato', 'tabla')
@@ -95,6 +75,52 @@ def reporte_periodo_generacion(request):
 	    	writer.writerow(fila)
 
 	    return response
+
+	if (formato == 'grafico'):
+	    result = []
+
+	    for i in range(0, len(valoresEstacion['valores'])):
+	    	fila = {}
+	    	for w in range(0, len(valoresEstacion['valores'][i])):
+	    		if (w == 0):
+	    			fila['fecha'] = valoresEstacion['valores'][i][w]
+	    		else:
+	    			fila[valoresEstacion['titulos'][w]] = _redondeo(valoresEstacion['valores'][i][w])
+
+	    	result.append(fila)
+
+	    response_data = {}
+	    response_data['status'] = 'ok'
+	    response_data['data'] = result
+
+	    return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
+	    
+
+def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):
+	fecha_desde = desde.strftime("%Y-%m-%d %H:%M:%S")
+	fecha_hasta = hasta.strftime("%Y-%m-%d %H:%M:%S")
+
+	# mascara por mes del query
+	mascaraPeriodo = 'YYYY-MM-DD-HH24'
+	if (periodo == 'dia'):
+		mascaraPeriodo = 'YYYY-MM-DD'
+	if (periodo == 'mes'):
+		mascaraPeriodo = 'YYYY-MM'
+
+	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed"  from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s group by fechaIndice order by fechaIndice asc'
+	cursor = connection.cursor()
+	cursor.execute(query, [fecha_desde, fecha_hasta, id_estacion])
+	# rows = _fields_to_dict(cursor)
+	columns = [col[0] for col in cursor.description]
+
+	return {'titulos' : columns, 'valores' : cursor.fetchall()}
+
+def _redondeo(valorFloat):
+	if (valorFloat != None):
+	    # "{0:.2f}".format(d.outtemp)
+	    return math.ceil(valorFloat*100)/100
+	else:
+		return None
 
 @register.filter
 def is_numeric(value):

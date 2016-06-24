@@ -23,6 +23,21 @@ from django.db import connection
 def home(request):
     return render(request, 'home.html')
 
+def estacion_listado_inicio(request):
+
+	estaciones = list(Station.objects.all())
+
+	result = []
+
+	for est in estaciones:
+		result.append({'pk' : est.pk, 'name' : est.name, 'detailsUrl' : est.name, 'lat' : est.lat, 'lg' : est.lg})
+
+	response_data = {}
+	response_data['status'] = 'ok'
+	response_data['data'] = result
+
+	return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
+
 def reporte_anual(request):
 
     estaciones = Station.objects.all()

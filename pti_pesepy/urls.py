@@ -26,6 +26,8 @@ urlpatterns = [
 
     url(r'^reporte/anual/tabla', analisisVariablesViews.reporte_anual_generacion),
     url(r'^reporte/anual', analisisVariablesViews.reporte_anual),
+
+    url(r'^estacion/listadoInicio', analisisVariablesViews.estacion_listado_inicio),
     
     url(r'^reporte/periodo/tabla', analisisVariablesPeriodo.reporte_periodo_generacion),
     url(r'^reporte/periodo', analisisVariablesPeriodo.reporte_periodo),
