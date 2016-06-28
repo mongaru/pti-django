@@ -358,7 +358,14 @@ EstacionGrafico.graficarVariable = function(elementoSelector, datos, variable)
 
         if (variable == "winddir")
             fila['y'] = datos[i].winddir;
-        else
+
+        if (variable == "windspeed")
+            fila['y'] = datos[i].windspeed;
+
+        if (variable == "presion")
+            fila['y'] = datos[i].presion;
+
+        if (variable == "temperatura")
             fila['y'] = datos[i].temperatura;
         
         // serie.push(fila);
