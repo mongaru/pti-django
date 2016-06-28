@@ -51,6 +51,10 @@ Inicio.cargarPuntos = function()
 
 Inicio.cargarMapa = function()
 {
+    // verificar si existe el contenedor del mapa en la paigna
+    if (jQuery("#map-canvas").length == 0)
+        return;
+    
 	var latLng = new google.maps.LatLng(-25.28294542863535, -57.558564025878906);
 
     var map = new google.maps.Map(document.getElementById('map-canvas'), {
