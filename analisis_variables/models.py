@@ -81,28 +81,28 @@ class Record(models.Model):
 	datetime = models.DateTimeField(db_column='dateTime')  # Field name made lowercase.
 	usunits = models.IntegerField(db_column='usUnits')  # Field name made lowercase.
 	interval = models.IntegerField()
-	barometer = models.DecimalField(blank=True, max_digits=6, decimal_places=1,null=True)
-	pressure = models.DecimalField(blank=True, max_digits=6, decimal_places=1,null=True)
-	altimeter = models.DecimalField(blank=True, max_digits=6, decimal_places=1, null=True)
-	intemp = models.DecimalField(db_column='inTemp',max_digits=3, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	outtemp = models.DecimalField(db_column='outTemp',max_digits=3, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	inhumidity = models.DecimalField(db_column='inHumidity', max_digits=4, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	outhumidity = models.DecimalField(db_column='outHumidity', max_digits=4, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
-	windspeed = models.DecimalField(db_column='windSpeed',max_digits=5, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	winddir = models.DecimalField(db_column='windDir', max_digits=4, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	windgust = models.DecimalField(db_column='windGust',max_digits=4, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	windgustdir = models.DecimalField(db_column='windGustDir',max_digits=5, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	rainrate = models.DecimalField(db_column='rainRate',max_digits=6, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	rain = models.DecimalField(blank=True, max_digits=6, decimal_places=1, null=True)
-	dewpoint = models.DecimalField(blank=True, max_digits=6, decimal_places=1,null=True)
-	windchill = models.DecimalField(blank=True, max_digits=6, decimal_places=1,null=True)
-	heatindex = models.DecimalField(blank=True, max_digits=6, decimal_places=1,null=True)
-	et = models.DecimalField(db_column='ET', max_digits=6, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	radiation = models.DecimalField(blank=True, max_digits=6, decimal_places=1, null=True)
-	radiation_total = models.DecimalField(db_column='radiation_total',max_digits=6, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
-	uv = models.DecimalField(db_column='UV', max_digits=6, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
-	extratemp1 = models.DecimalField(default=0, db_column='extraTemp1', max_digits=3, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
-	extratemp2 = models.DecimalField(default=0, db_column='extraTemp2', max_digits=3, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
+	barometer = models.DecimalField(blank=True, max_digits=10, decimal_places=1,null=True)
+	pressure = models.DecimalField(blank=True, max_digits=10, decimal_places=1,null=True)
+	altimeter = models.DecimalField(blank=True, max_digits=10, decimal_places=1, null=True)
+	intemp = models.DecimalField(db_column='inTemp',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	outtemp = models.DecimalField(db_column='outTemp',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	inhumidity = models.DecimalField(db_column='inHumidity', max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	outhumidity = models.DecimalField(db_column='outHumidity', max_digits=10, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
+	windspeed = models.DecimalField(db_column='windSpeed',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	winddir = models.DecimalField(db_column='windDir', max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	windgust = models.DecimalField(db_column='windGust',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	windgustdir = models.DecimalField(db_column='windGustDir',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	rainrate = models.DecimalField(db_column='rainRate',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	rain = models.DecimalField(blank=True, max_digits=10, decimal_places=1, null=True)
+	dewpoint = models.DecimalField(blank=True, max_digits=10, decimal_places=1,null=True)
+	windchill = models.DecimalField(blank=True, max_digits=10, decimal_places=1,null=True)
+	heatindex = models.DecimalField(blank=True, max_digits=10, decimal_places=1,null=True)
+	et = models.DecimalField(db_column='ET', max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	radiation = models.DecimalField(blank=True, max_digits=10, decimal_places=1, null=True)
+	radiation_total = models.DecimalField(db_column='radiation_total',max_digits=10, decimal_places=1, blank=True, null=True)  # Field name made lowercase.
+	uv = models.DecimalField(db_column='UV', max_digits=10, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
+	extratemp1 = models.DecimalField(default=0, db_column='extraTemp1', max_digits=10, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
+	extratemp2 = models.DecimalField(default=0, db_column='extraTemp2', max_digits=10, decimal_places=1,blank=True, null=True)  # Field name made lowercase.
 	extratemp3 = models.FloatField(default=0, db_column='extraTemp3', blank=True, null=True)  # Field name made lowercase.
 	soiltemp1 = models.FloatField(default=0, db_column='soilTemp1', blank=True, null=True)  # Field name made lowercase.
 	soiltemp2 = models.FloatField(default=0, db_column='soilTemp2', blank=True, null=True)  # Field name made lowercase.
