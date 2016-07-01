@@ -11,7 +11,7 @@
             });
 
             $('#formato').change(function(){
-                if ($(this).val() == 'grafico')
+                if ($(this).val() == 'grafico' || $(this).val() == 'graficoPorAnio')
                 {
                     $('#variableInput').show();
                 }
@@ -41,10 +41,10 @@
 
                 var url = '/reporte/periodo/tabla?desde='+desde+'&hasta='+hasta+'&estacion='+estaciones+'&formato='+formato+'&periodo='+periodo;
 
-                if (formato == 'grafico')
+                if (formato == 'grafico' ||formato == 'graficoPorAnio')
                 {
                     // cargar datos y generar grafico
-                    EstacionGrafico.graficoPorEstacion(url, variable);
+                    EstacionGrafico.graficoPorEstacion(url, formato, variable);
                 }
                 else
                 {
@@ -103,6 +103,7 @@
                     <option value="tabla">Tabla</option>
                     <option value="csv">CSV</option>
                     <option value="grafico">Grafico</option>
+                    <option value="graficoPorAnio">Grafico Anual</option>
                 </select>
             </div>
           </div>

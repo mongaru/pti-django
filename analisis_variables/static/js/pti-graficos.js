@@ -166,6 +166,67 @@ HighCharts.graficoLinea = function(elementoSelector, datos, titulos, titulo, lab
     });
 };
 
+HighCharts.graficoLineaMultiple = function(elementoSelector, datos, titulos, titulo, labelValor)
+{
+    jQuery(elementoSelector).highcharts({
+        chart: {
+            zoomType: 'x'
+        },
+        title: {
+            text: titulo
+        },
+        subtitle: {
+            text: document.ontouchstart === undefined ?
+                    'Haga click y arrastre en el grafico para mayor zoom' :
+                    'Pinch the chart to zoom in'
+        },
+        xAxis: {
+            categories: titulos,
+            //minRange: 14 * 24 * 3600000 // fourteen days
+            labels: {
+                rotation: -90,
+                style: {
+                    fontSize: '13px',
+                    fontFamily: 'Verdana, sans-serif'
+                }
+            }
+        },
+        // yAxis: {
+        //     title: {
+        //         text: 'Exchange rate'
+        //     }
+        // },
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'middle',
+            borderWidth: 0
+        },
+        plotOptions: {
+            area: {
+                // fillColor: {
+                //     linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1},
+                //     stops: [
+                //         [0, Highcharts.getOptions().colors[0]],
+                //         [1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                //     ]
+                // },
+                marker: {
+                    radius: 2
+                },
+                lineWidth: 1,
+                states: {
+                    hover: {
+                        lineWidth: 1
+                    }
+                },
+                threshold: null
+            }
+        },
+        series: datos
+    });
+};
+
 HighCharts.graficoBarra = function(elementoSelector, datosX, datosY, titulo, labelValor)
 {
     jQuery(elementoSelector).highcharts({
@@ -332,14 +393,18 @@ EstacionGrafico.cargarDatosSincrono = function(url, desde, hasta)
 };
 
 
-EstacionGrafico.graficoPorEstacion = function(url, variable)
+EstacionGrafico.graficoPorEstacion = function(url, tipoGrafico, variable)
 {
     jQuery.ajax({
         url : url,
         type : "GET",
         dataType : "json",
         success : function (response) {
-            EstacionGrafico.graficarVariable('.chart-panel', response.data, variable);
+            if (tipoGrafico == 'grafico')
+                EstacionGrafico.graficarVariable('.chart-panel', response.data, variable);
+
+            if (tipoGrafico == 'graficoPorAnio')
+                EstacionGrafico.graficarVariablePorAnio('.chart-panel', response.data, variable);
         }
     });
 }
@@ -376,6 +441,113 @@ EstacionGrafico.graficarVariable = function(elementoSelector, datos, variable)
     EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, titulos, 'Registros de variable en periodo', 'Valores');
 };
 
+EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nombreVariable)
+{
+    // var datos = EstacionGrafico.cargarDatosSincrono('/temperatura/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
+
+    var titulos = [];
+    var cargoTitulos = false;
+    var valores = [];
+
+    for (key in datos['valores'])
+    {
+        var filas = datos['valores'][key];
+        var valoresAnio = [];
+
+        for (var i = 0; i < filas.length; i++)
+        {
+            // if (cargoTitulos == false)
+            // {
+            //     titulos.push(columna);
+            // }
+
+            var variables = filas[i];
+
+            if (isEmpty(variables))
+            {
+                valoresAnio.push(-10);
+                continue;
+            }
+
+            if (nombreVariable == "winddir")
+                valoresAnio.push(variables['winddir']);
+
+            if (nombreVariable == "windspeed")
+                valoresAnio.push(variables['windspeed']);
+
+            if (nombreVariable == "presion")
+                valoresAnio.push(variables['presion']);
+
+            if (nombreVariable == "temperatura")
+                valoresAnio.push(variables['temperatura']);
+                
+        }
+
+        cargoTitulos = true;
+
+        valores.push({name : key, data : valoresAnio});
+    }
+
+    EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, datos['columnas'], 'Registros de variable en periodo', 'Valores');
+};
+
+EstacionGrafico.graficarVariablePorAnio2 = function(elementoSelector, datos, nombreVariable)
+{
+    // var datos = EstacionGrafico.cargarDatosSincrono('/temperatura/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
+
+    var titulos = [];
+    var cargoTitulos = false;
+    var valores = [];
+
+    for (key in datos)
+    {
+        var filas = datos[key];
+        var valoresAnio = [];
+
+        for (columna in filas)
+        {
+            if (cargoTitulos == false)
+            {
+                titulos.push(columna);
+            }
+
+            var variables = filas[columna];
+
+            if (isEmpty(variables))
+            {
+                valoresAnio.push(-10);
+                continue;
+            }
+
+            if (nombreVariable == "winddir")
+                valoresAnio.push(variables['winddir']);
+
+            if (nombreVariable == "windspeed")
+                valoresAnio.push(variables['windspeed']);
+
+            if (nombreVariable == "presion")
+                valoresAnio.push(variables['presion']);
+
+            if (nombreVariable == "temperatura")
+                valoresAnio.push(variables['temperatura']);
+                
+        }
+
+        cargoTitulos = true;
+
+        valores.push({name : key, data : valoresAnio});
+    }
+
+    EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, titulos, 'Registros de variable en periodo', 'Valores');
+};
+
+
+function isEmpty( o ) {
+    for ( var p in o ) { 
+        if ( o.hasOwnProperty( p ) ) { return false; }
+    }
+    return true;
+}
 
 EstacionGrafico.temperaturaHistorico = function(elementoSelector)
 {

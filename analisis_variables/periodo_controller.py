@@ -94,7 +94,114 @@ def reporte_periodo_generacion(request):
 	    response_data['data'] = result
 
 	    return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
-	    
+
+	if (formato == 'graficoPorAnio'):
+	    datosExportar = _generar_reporte_por_anio(valoresEstacion)
+	    result = datosExportar
+
+	    response_data = {}
+	    response_data['status'] = 'ok'
+	    response_data['data'] = result
+
+	    return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
+	        
+
+def _generar_reporte_por_anio(valoresEstacion):
+	# formato de salida
+	# {"2014" : {"01" : {"fecha" : "sss", "temperatura"}, "02" : {"fecha" : "sss", "temperatura"} } }
+	columnas = {}
+	contador = 0
+	columnasNombre = []
+
+	for i in range(0, len(valoresEstacion['valores'])):
+		fila = {}
+		posicionValor = valoresEstacion['valores'][i][0]
+		posicionValor = posicionValor[5:len(posicionValor)]
+
+		columnas[posicionValor] = i
+		columnasNombre.append(posicionValor)
+
+	result = {};
+
+	columnasLista = []
+	
+
+	for i in range(0, len(columnas)):
+		columnasLista.append({})
+		columnasNombre.append
+
+	# pprint.pprint(columnas)
+
+	for i in range(0, len(valoresEstacion['valores'])):
+		fila = {}
+		fechaAnio = valoresEstacion['valores'][i][0][:4]
+		# pprint.pprint(fechaAnio)
+		posicionValor = valoresEstacion['valores'][i][0]
+		posicionValor = posicionValor[5:len(posicionValor)]
+
+		# pprint.pprint(posicionValor)
+
+    		for w in range(0, len(valoresEstacion['valores'][i])):
+    			if (w == 0):
+    				fila['fecha'] = valoresEstacion['valores'][i][w]
+    			else:
+    				fila[valoresEstacion['titulos'][w]] = _redondeo(valoresEstacion['valores'][i][w])
+
+    		# pprint.pprint(fechaAnio)
+
+    	
+    		if (fechaAnio not in result):
+
+    			result[fechaAnio] = list(columnasLista)
+
+		result[fechaAnio][columnas[posicionValor]] = fila
+
+	return {'columnas' : columnasNombre, 'valores' : result}
+
+
+def _generar_reporte_por_anio2(valoresEstacion):
+	# formato de salida
+	# {"2014" : {"01" : {"fecha" : "sss", "temperatura"}, "02" : {"fecha" : "sss", "temperatura"} } }
+	columnas = {}
+
+	for i in range(0, len(valoresEstacion['valores'])):
+		fila = {}
+		posicionValor = valoresEstacion['valores'][i][0]
+		posicionValor = posicionValor[5:len(posicionValor)]
+
+		columnas[posicionValor] = {}
+
+	result = {};
+
+	# pprint.pprint(columnas)
+
+	for i in range(0, len(valoresEstacion['valores'])):
+		fila = {}
+		fechaAnio = valoresEstacion['valores'][i][0][:4]
+		# pprint.pprint(fechaAnio)
+		posicionValor = valoresEstacion['valores'][i][0]
+		posicionValor = posicionValor[5:len(posicionValor)]
+
+		# pprint.pprint(posicionValor)
+
+    		for w in range(0, len(valoresEstacion['valores'][i])):
+    			if (w == 0):
+    				fila['fecha'] = valoresEstacion['valores'][i][w]
+    			else:
+    				fila[valoresEstacion['titulos'][w]] = _redondeo(valoresEstacion['valores'][i][w])
+
+    		# pprint.pprint(fechaAnio)
+
+    	
+    		if (fechaAnio not in result):
+
+    			result[fechaAnio] = columnas.copy()
+
+		result[fechaAnio][posicionValor] = fila
+
+	return {'columnas' : columnas, 'valores' : result}
+
+	
 
 def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):
 	fecha_desde = desde.strftime("%Y-%m-%d %H:%M:%S")
