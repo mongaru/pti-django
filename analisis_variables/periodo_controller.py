@@ -108,38 +108,45 @@ def reporte_periodo_generacion(request):
 
 def _generar_reporte_por_anio(valoresEstacion):
 	# formato de salida
-	# {"2014" : {"01" : {"fecha" : "sss", "temperatura"}, "02" : {"fecha" : "sss", "temperatura"} } }
+	# este era el anterior que no funciono {"2014" : {"01" : {"fecha" : "sss", "temperatura"}, "02" : {"fecha" : "sss", "temperatura"} } }
+	# {'columnas' : ['01', '02', '03'], 'valores' : {'2015' : [10, 11, 12], '2016' : [10, 11, 12]}
+
 	columnas = {}
 	contador = 0
 	columnasNombre = []
 
+	# primero se recorren los datos para poder generar los titulos de columnas, debido a que las fechas tienen que ser en orden
+	# para que se carguen de la misma manera en que vienen de la base de datos. En caso de que sean los mismos dias, estos se van 
+	# a separar luego por anio pero estaran en la misma posicion por lo que se van a poder comparar
 	for i in range(0, len(valoresEstacion['valores'])):
 		fila = {}
 		posicionValor = valoresEstacion['valores'][i][0]
 		posicionValor = posicionValor[5:len(posicionValor)]
 
-		columnas[posicionValor] = i
-		columnasNombre.append(posicionValor)
+		columnas[posicionValor] = i # obtenemos la clave de la fecha y colocamos el contador para saber su posicion en el arreglo
+		columnasNombre.append(posicionValor) # cargamos el arreglo de titulos de columnas para el grafico
 
 	result = {};
 
 	columnasLista = []
-	
 
+	# se genera un listado de las columnas de datos que se van a necesitar con datos vacios. Luego utilizando la clave de la fecha
+	# se obtiene la posicion en donde se debe cargar los datos.
 	for i in range(0, len(columnas)):
 		columnasLista.append({})
-		columnasNombre.append
 
 	# pprint.pprint(columnas)
 
+	# se recorren los datos para cargarlos en los anhos que corresponden y en la posicion del arreglo de acuerdo a la columna que corresponden
 	for i in range(0, len(valoresEstacion['valores'])):
 		fila = {}
+
+		# se obtiene el anho a donde cargar el dato
 		fechaAnio = valoresEstacion['valores'][i][0][:4]
-		# pprint.pprint(fechaAnio)
+		# se obtiene la clave de la fecha sin el anio para poder obtener la hora, el dia o mes
 		posicionValor = valoresEstacion['valores'][i][0]
 		posicionValor = posicionValor[5:len(posicionValor)]
 
-		# pprint.pprint(posicionValor)
 
     		for w in range(0, len(valoresEstacion['valores'][i])):
     			if (w == 0):
@@ -147,60 +154,15 @@ def _generar_reporte_por_anio(valoresEstacion):
     			else:
     				fila[valoresEstacion['titulos'][w]] = _redondeo(valoresEstacion['valores'][i][w])
 
-    		# pprint.pprint(fechaAnio)
-
-    	
+    		# en caso de no tener un listado del anho se crea uno
     		if (fechaAnio not in result):
 
     			result[fechaAnio] = list(columnasLista)
 
+    	# se agrega la fila de datos en el anho y en la posicion del listado de datos de acuerdo a la posicion de la columna
 		result[fechaAnio][columnas[posicionValor]] = fila
 
 	return {'columnas' : columnasNombre, 'valores' : result}
-
-
-def _generar_reporte_por_anio2(valoresEstacion):
-	# formato de salida
-	# {"2014" : {"01" : {"fecha" : "sss", "temperatura"}, "02" : {"fecha" : "sss", "temperatura"} } }
-	columnas = {}
-
-	for i in range(0, len(valoresEstacion['valores'])):
-		fila = {}
-		posicionValor = valoresEstacion['valores'][i][0]
-		posicionValor = posicionValor[5:len(posicionValor)]
-
-		columnas[posicionValor] = {}
-
-	result = {};
-
-	# pprint.pprint(columnas)
-
-	for i in range(0, len(valoresEstacion['valores'])):
-		fila = {}
-		fechaAnio = valoresEstacion['valores'][i][0][:4]
-		# pprint.pprint(fechaAnio)
-		posicionValor = valoresEstacion['valores'][i][0]
-		posicionValor = posicionValor[5:len(posicionValor)]
-
-		# pprint.pprint(posicionValor)
-
-    		for w in range(0, len(valoresEstacion['valores'][i])):
-    			if (w == 0):
-    				fila['fecha'] = valoresEstacion['valores'][i][w]
-    			else:
-    				fila[valoresEstacion['titulos'][w]] = _redondeo(valoresEstacion['valores'][i][w])
-
-    		# pprint.pprint(fechaAnio)
-
-    	
-    		if (fechaAnio not in result):
-
-    			result[fechaAnio] = columnas.copy()
-
-		result[fechaAnio][posicionValor] = fila
-
-	return {'columnas' : columnas, 'valores' : result}
-
 	
 
 def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):

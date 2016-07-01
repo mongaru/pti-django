@@ -443,10 +443,6 @@ EstacionGrafico.graficarVariable = function(elementoSelector, datos, variable)
 
 EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nombreVariable)
 {
-    // var datos = EstacionGrafico.cargarDatosSincrono('/temperatura/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var titulos = [];
-    var cargoTitulos = false;
     var valores = [];
 
     for (key in datos['valores'])
@@ -456,11 +452,6 @@ EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nomb
 
         for (var i = 0; i < filas.length; i++)
         {
-            // if (cargoTitulos == false)
-            // {
-            //     titulos.push(columna);
-            // }
-
             var variables = filas[i];
 
             if (isEmpty(variables))
@@ -483,64 +474,11 @@ EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nomb
                 
         }
 
-        cargoTitulos = true;
-
         valores.push({name : key, data : valoresAnio});
     }
 
     EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, datos['columnas'], 'Registros de variable en periodo', 'Valores');
 };
-
-EstacionGrafico.graficarVariablePorAnio2 = function(elementoSelector, datos, nombreVariable)
-{
-    // var datos = EstacionGrafico.cargarDatosSincrono('/temperatura/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var titulos = [];
-    var cargoTitulos = false;
-    var valores = [];
-
-    for (key in datos)
-    {
-        var filas = datos[key];
-        var valoresAnio = [];
-
-        for (columna in filas)
-        {
-            if (cargoTitulos == false)
-            {
-                titulos.push(columna);
-            }
-
-            var variables = filas[columna];
-
-            if (isEmpty(variables))
-            {
-                valoresAnio.push(-10);
-                continue;
-            }
-
-            if (nombreVariable == "winddir")
-                valoresAnio.push(variables['winddir']);
-
-            if (nombreVariable == "windspeed")
-                valoresAnio.push(variables['windspeed']);
-
-            if (nombreVariable == "presion")
-                valoresAnio.push(variables['presion']);
-
-            if (nombreVariable == "temperatura")
-                valoresAnio.push(variables['temperatura']);
-                
-        }
-
-        cargoTitulos = true;
-
-        valores.push({name : key, data : valoresAnio});
-    }
-
-    EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, titulos, 'Registros de variable en periodo', 'Valores');
-};
-
 
 function isEmpty( o ) {
     for ( var p in o ) { 
