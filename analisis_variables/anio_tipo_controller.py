@@ -3,6 +3,7 @@ import pprint
 import calendar
 import math
 import csv
+import decimal
 from datetime import datetime, timedelta
 
 from django.db.models import Min, Max, Sum
@@ -20,36 +21,6 @@ from analisis_variables.models import Station, Record
 from django.db.models import Q
 from django.db import connection
 
-def home(request):
-    return render(request, 'home.html')
-
-def estacion_listado_inicio(request):
-
-	estaciones = list(Station.objects.all())
-
-	result = []
-
-	for est in estaciones:
-		result.append({'pk' : est.pk, 'name' : est.name, 'detailsUrl' : est.name, 'lat' : est.lat, 'lg' : est.lg})
-
-	response_data = {}
-	response_data['status'] = 'ok'
-	response_data['data'] = result
-
-	return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
-
-def reporte_anual(request):
-
-    estaciones = Station.objects.all()
-    departamentos = Station.DEPTOS
-
-    dataToRender = {
-        'estaciones' : estaciones,
-        'departamentos' : departamentos
-    }
-
-    return render_to_response('reporte_anual.html', dataToRender)
-
 
 def reporte_anual_generacion(request):
     
@@ -59,15 +30,15 @@ def reporte_anual_generacion(request):
 	idEstaciones = idEstaciones.split('-')
 
 	desde = request.GET.get('desde', datetime.today().strftime("%Y-%m-%d"))
+	desde = datetime.today().strftime("%Y-%m-%d") if desde == '' else desde
 	desde = datetime.strptime(desde, '%Y-%m-%d')
 	desde = desde.replace(hour=00, minute=01)
-	# pprint.pprint(desde)
 
 	fechaHastaDefault = datetime.today() - timedelta(days=10)
 	hasta = request.GET.get('hasta', fechaHastaDefault.strftime("%Y-%m-%d"))
+	hasta = fechaHastaDefault.strftime("%Y-%m-%d") if hasta == '' else hasta
 	hasta = datetime.strptime(hasta, '%Y-%m-%d')
 	hasta = hasta.replace(hour=23, minute=59)
-	# pprint.pprint(hasta)
 
 	titulos = None
 	valores = []
@@ -105,6 +76,8 @@ def reporte_anual_generacion(request):
 	    	writer.writerow(fila)
 
 	    return response
+
+    # return render_to_response('home.html', dict(respuestaData.items() + _getUserData(request).items()))
 
 def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
 
@@ -162,10 +135,12 @@ def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
 		titulosExportar.append('estacionRadiacion - ' + resultadoEstacion['estacion'])
 
 	for resultadoMes in mensualVel10:
-		titulosExportar.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+		# titulosExportar.append('mensualVel10 - ' + _nombre_mes(resultadoMes['month']))
+		titulosExportar.append('mensualVel10 - ' + resultadoMes['month'])
 
 	for resultadoMes in mensualRadiacion:
-		titulosExportar.append('mensualRadiacion - ' + _nombre_mes(resultadoMes['month']))
+		# titulosExportar.append('mensualRadiacion - ' + _nombre_mes(resultadoMes['month']))
+		titulosExportar.append('mensualRadiacion - ' + resultadoMes['month'])
 
 
 	# colecta de valores en el mismo orden de los titulos para la exportacion a csv
@@ -221,16 +196,14 @@ def _calculo_anual(fecha_desde, fecha_hasta, variable, station):
 	fecha_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
 
 	# select to_char(a."dateTime", 'YYYY-MM-DD-HH24') as fechaIndice, avg(a.barometer), avg(a."outTemp") from stations_data as a where a.id < 11000 group by fechaIndice order by fechaIndice asc
-	query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+	# query = 'select min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+	query = 'select min(a1.'+'min'+'), max(a1.'+'max'+'), avg(a1.'+'avg'+') from (' + 'select to_char(a."dateTime", \'MM-DD-HH\') as fechaIndice, min(a.'+variable+'), max(a.'+variable+'), avg(a.'+variable+') from analisis_variables_record as a where a.station_id = %s group by fechaIndice '+'order by fechaIndice asc) a1'
+
 	cursor = connection.cursor()
-	cursor.execute(query, [fecha_desde, fecha_hasta, station.pk])
+	cursor.execute(query, [station.pk])
 	rows = _fields_to_dict(cursor)
 
 	return rows[0]
-    # rows = cursor.fetchall()
-
-    # for row in rows:
-    #     pprint.pprint(row)
 
 def _calculo_mensual(fecha_inicio, fecha_fin, variable, station):
 
@@ -238,57 +211,71 @@ def _calculo_mensual(fecha_inicio, fecha_fin, variable, station):
     ultimo_dia = calendar.monthrange(fecha_desde.year, fecha_desde.month)[1]
     fecha_hasta = fecha_desde.replace(day=ultimo_dia)
 
-    # pprint.pprint(fecha_desde)
-    # pprint.pprint(fecha_hasta)
-    # pprint.pprint("inicia while")
-
+    meses = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
     resultadosMes = []
     
-    while (fecha_desde < fecha_fin):
+    for mes in meses:
 
         # cargar datos
-        str_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
-        str_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
+        # str_desde = fecha_desde.strftime("%Y-%m-%d %H:%M:%S")
+        # str_hasta = fecha_hasta.strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+        # query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+        query = 'select avg(n1.avg) from (select to_char(a."dateTime", \'MM-DD-HH24\') as fechaIndice, avg(a.'+variable+')  '+'from analisis_variables_record as a where a.station_id = %s group by fechaIndice '+'order by fechaIndice asc ) n1 where n1.fechaIndice like \''+mes+'-%%\''
+
         cursor = connection.cursor()
-        cursor.execute(query, [str_desde, str_hasta, station.pk])
+        cursor.execute(query, [station.pk])
         rows = _fields_to_dict(cursor)
 
-        resultadosMes.append({'month' : fecha_desde.month, 'year' : fecha_desde.year, 'avg' : rows[0]})
+        pprint.pprint(rows)
+        resultadosMes.append({'month' : _nombre_mes(int(mes)), 'year' : fecha_desde.year, 'avg' : rows[0]})
 
 
         # aumentar la fecha - sumar un mes
-        fecha_desde = _sumar_mes(fecha_desde)
-        fecha_desde = fecha_desde.replace(day=1)
+        # fecha_desde = _sumar_mes(fecha_desde)
+        # fecha_desde = fecha_desde.replace(day=1)
         # obtener el ultimo dia del mes
-        ultimo_dia = calendar.monthrange(fecha_desde.year, fecha_desde.month)[1]
-        fecha_hasta = fecha_desde.replace(day=ultimo_dia, hour=23, minute=59)
+        # ultimo_dia = calendar.monthrange(fecha_desde.year, fecha_desde.month)[1]
+        # fecha_hasta = fecha_desde.replace(day=ultimo_dia, hour=23, minute=59)
 
-        # pprint.pprint(fecha_desde)
-        # pprint.pprint(fecha_hasta)
-
-    # pprint.pprint(resultadosMes)
     return resultadosMes
 
 def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable, station):
 
-    fechasEstaciones = _fechasParaEstaciones(fecha_inicio, fecha_fin)
+    # fechasEstaciones = _fechasParaEstaciones(fecha_inicio, fecha_fin)
 
-    # pprint.pprint(fechasEstaciones)
+    # estaciones = [
+    #     {'estacion' : 'verano', 'inicio' : 1221, 'fin' : 1231},
+    #     {'estacion' : 'verano', 'inicio' : 101, 'fin' : 320},
+    #     {'estacion' : 'otono', 'inicio' : 321, 'fin' : 620},
+    #     {'estacion' : 'invierno', 'inicio' : 621, 'fin' : 920},
+    #     {'estacion' : 'primavera', 'inicio' : 921, 'fin' : 1220},
+    # ]
+
+    # fechas de estaciones en formato MM-DD-HH24
+    fechasEstaciones = [
+        {'estacion' : 'verano', 'inicio' : '01-01-00', 'fin' : '03-20-24'},
+        {'estacion' : 'otono', 'inicio' : '03-21-00', 'fin' : '06-20-24'},
+        {'estacion' : 'invierno', 'inicio' : '06-21-00', 'fin' : '09-20-24'},
+        {'estacion' : 'primavera', 'inicio' : '09-21-00', 'fin' : '12-20-24'},
+        {'estacion' : 'verano', 'inicio' : '12-21-00', 'fin' : '12-31-24'},
+    ]
+
     resultadosMes = []
 
     for estacion in fechasEstaciones:
-        # cargar datos
-        str_desde = estacion['inicio'].strftime("%Y-%m-%d %H:%M:%S")
-        str_hasta = estacion['fin'].strftime("%Y-%m-%d %H:%M:%S")
 
-        query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+        # query = 'select avg(a.'+variable+') from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s'
+        query = 'select avg(n1.avg) from (select to_char(a."dateTime", \'MM-DD-HH24\') as fechaIndice, avg(a.'+variable+')  '+'from analisis_variables_record as a where a.station_id = %s group by fechaIndice '+'order by fechaIndice asc ) n1 where n1.fechaIndice >= %s and n1.fechaIndice <= %s'
+        
         cursor = connection.cursor()
-        cursor.execute(query, [str_desde, str_hasta, station.pk])
+        cursor.execute(query, [station.pk, estacion['inicio'], estacion['fin']])
         rows = _fields_to_dict(cursor)
 
-        resultadosMes.append({'month' : estacion['inicio'].month, 'year' : estacion['inicio'].year, 'avg' : rows[0], 'estacion' : estacion['estacion']})
+        pprint.pprint(rows)
+
+        # resultadosMes.append({'month' : estacion['inicio'].month, 'year' : estacion['inicio'].year, 'avg' : rows[0], 'estacion' : estacion['estacion']})
+        resultadosMes.append({'avg' : rows[0], 'estacion' : estacion['estacion']})
 
     return resultadosMes
 
@@ -304,21 +291,21 @@ def _estacionDelAnio(fecha):
     # entonces se compara de manera numerica la estacion de la fecha
     
     estaciones = [
-        {'estacion' : 'verano', 'inicio' : 1221, 'fin' : 1231},
-        {'estacion' : 'verano', 'inicio' : 101, 'fin' : 320},
-        {'estacion' : 'otono', 'inicio' : 321, 'fin' : 620},
-        {'estacion' : 'invierno', 'inicio' : 621, 'fin' : 920},
-        {'estacion' : 'primavera', 'inicio' : 921, 'fin' : 1220},
+        {'estacion' : 'verano', 'inicio' : '12-21', 'fin' : '12-31'},
+        {'estacion' : 'verano', 'inicio' : '01-01', 'fin' : '03-20'},
+        {'estacion' : 'otono', 'inicio' : '03-21', 'fin' : '06-20'},
+        {'estacion' : 'invierno', 'inicio' : '06-21', 'fin' : '09-20'},
+        {'estacion' : 'primavera', 'inicio' : '09-21', 'fin' : '12-20'},
     ]
 
     # obtenes el valor de mes/dia de la fecha indicada
     fechaEstacion = int(fecha.strftime("%m") + fecha.strftime("%d"))
 
-    # pprint.pprint(fechaEstacion)
+    pprint.pprint(fechaEstacion)
 
     for estacion in estaciones:
         if (fechaEstacion >= estacion['inicio'] and fechaEstacion <= estacion["fin"]):
-            # pprint.pprint(estacion['estacion'])
+            pprint.pprint(estacion['estacion'])
             return estacion['estacion']
 
     return 'sin estacion'
@@ -350,8 +337,8 @@ def _fechasParaEstaciones(fecha_inicio, fecha_fin):
         # incrementamos el dia y calculamos de nuevo la estacion
         fecha_inicio = fecha_inicio + timedelta(days=1)
         estacionNombre = _estacionDelAnio(fecha_inicio)
-        # pprint.pprint(fecha_inicio)
-        # pprint.pprint(estacionNombre)
+        pprint.pprint(fecha_inicio)
+        pprint.pprint(estacionNombre)
 
     # indicamos la fecha de fin al ultimo registro
     estacionesDisponibles[len(estacionesDisponibles) - 1]['fin'] = fecha_fin
@@ -386,8 +373,11 @@ def _nombre_mes(mes):
     nombreMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre']
     return nombreMeses[mes - 1]
 
+# TODO - solo los que se pueden hacer el math.ceil aceptar si es string retornar el mismo valor nomas
 def _redondeo(valorFloat):
+	# pprint.pprint(isinstance(valorFloat, (None,)))
 	# pprint.pprint(valorFloat)
+	# pprint.pprint(isinstance(valorFloat, (None,)))
 	if (valorFloat != None):
 	    # "{0:.2f}".format(d.outtemp)
 	    return math.ceil(valorFloat*100)/100

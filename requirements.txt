@@ -7,3 +7,6 @@ pytz==2015.4
 six==1.8.0
 wsgiref==0.1.2
 psycopg2==2.5.4
+pyexcel-xls
+pyexcel-xlsx
+pyexcel

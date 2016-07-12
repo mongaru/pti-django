@@ -37,22 +37,29 @@ def reporte_periodo_generacion(request):
     
 	formato = request.GET.get('formato', 'tabla')
 	periodo = request.GET.get('periodo', 'hora')
+	conjuntoDatos = request.GET.get('conjunto', 'porFecha')
 
 	id_estacion = request.GET.get('estacion', '1')
 
 	desde = request.GET.get('desde', datetime.today().strftime("%Y-%m-%d"))
+	desde = datetime.today().strftime("%Y-%m-%d") if desde == '' else desde
 	desde = datetime.strptime(desde, '%Y-%m-%d')
 	desde = desde.replace(hour=00, minute=01)
 
 	fechaHastaDefault = datetime.today() - timedelta(days=10)
 	hasta = request.GET.get('hasta', fechaHastaDefault.strftime("%Y-%m-%d"))
+	hasta = fechaHastaDefault.strftime("%Y-%m-%d") if hasta == '' else hasta
 	hasta = datetime.strptime(hasta, '%Y-%m-%d')
 	hasta = hasta.replace(hour=23, minute=59)
 
 	titulos = None
 	valores = []
 
-	valoresEstacion = _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo)
+	if (conjuntoDatos == 'porFecha'):
+		valoresEstacion = _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo)
+
+	if (conjuntoDatos == 'porAnioTipo'):
+		valoresEstacion = _generar_reporte_anio_tipo(desde, hasta, id_estacion, periodo)
 
 	dataToRender = {
 		'titulos' : valoresEstacion['titulos'],
@@ -95,7 +102,8 @@ def reporte_periodo_generacion(request):
 
 	    return HttpResponse(json.dumps(response_data, cls=DjangoJSONEncoder), content_type="application/json")
 
-	if (formato == 'graficoPorAnio'):
+	# generar este tipo de graficos solo para datos que no son del anio tipo
+	if (formato == 'graficoPorAnio' and conjuntoDatos != 'porAnioTipo'):
 	    datosExportar = _generar_reporte_por_anio(valoresEstacion)
 	    result = datosExportar
 
@@ -184,6 +192,26 @@ def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):
 
 	return {'titulos' : columns, 'valores' : cursor.fetchall()}
 
+def _generar_reporte_anio_tipo(desde, hasta, id_estacion, periodo):
+	# fecha_desde = desde.strftime("%Y-%m-%d %H:%M:%S")
+	# fecha_hasta = hasta.strftime("%Y-%m-%d %H:%M:%S")
+
+	# mascara por mes del query
+	mascaraPeriodo = 'MM-DD-HH24'
+	if (periodo == 'dia'):
+		mascaraPeriodo = 'MM-DD'
+	if (periodo == 'mes'):
+		mascaraPeriodo = 'MM'
+
+	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed"  from analisis_variables_record as a where a.station_id = %s group by fechaIndice order by fechaIndice asc'
+	cursor = connection.cursor()
+	cursor.execute(query, [id_estacion])
+	# rows = _fields_to_dict(cursor)
+	columns = [col[0] for col in cursor.description]
+
+	return {'titulos' : columns, 'valores' : cursor.fetchall()}
+
+
 def _redondeo(valorFloat):
 	if (valorFloat != None):
 	    # "{0:.2f}".format(d.outtemp)
@@ -193,5 +221,4 @@ def _redondeo(valorFloat):
 
 @register.filter
 def is_numeric(value):
-
-    return isinstance(value, (decimal.Decimal, int, float))
+	return isinstance(value, (decimal.Decimal, float))

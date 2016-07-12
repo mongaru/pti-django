@@ -9,6 +9,7 @@ from django.db.models import Min, Sum, OneToOneField
 from django.http import HttpResponse
 # from stations.action import export_to_csv
 import math
+import pprint
 
 class TypeStation(models.Model):
     type = models.CharField(max_length=255)
@@ -67,8 +68,87 @@ class Station(models.Model):
         degrees = degrees if is_positive else -degrees
         return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
 
+    def departamentoNombre(self):
+    	# http://stackoverflow.com/questions/4320679/django-display-choice-value
+    	return self.get_departamento_display()
 
+    	# otra solucion
+    	# for dpto in self.DEPTOS:
+    	# 	if (dpto[0] == self.departamento)
+    	# 		return dpto[1]
 
+    	# return ''
+
+    def datosPeriodo(self):
+		# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
+        try:
+            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+        except Record.DoesNotExist:
+            ultimoRegistro = None
+
+        try:
+            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+        except Record.DoesNotExist:
+            primerRegistro = None
+
+        if (ultimoRegistro != None and primerRegistro != None):
+        	delta = ultimoRegistro.datetime - primerRegistro.datetime
+        	years = math.modf(delta.days / 365)
+        	months = math.modf(delta.days / 30)
+
+        	# en caso de que hayan anhos de datos, agregar los dias
+        	if (years[1] > 0):
+        		# como la division es entera entonces coercionamos a float la constante y luego obtenemos la parte decimal
+        		days = (delta.days / float(365)) - years[1]
+        		# la parte decimal seria el porcentaje de la constante que corresponderia a los dias
+        		days = math.modf(days * float(365))
+        		return str(int(years[1])) + ' anho(s), ' + str(int(days[1])) + ' dias'
+
+        	# en caso de que hayan solo meses de datos, agregamos los dias con el mismo calculo que el paso anterior
+        	if (months[1] > 0):
+        		days = (delta.days / float(30)) - months[1]
+        		days = math.modf(days * float(30))
+        		return str(int(months[1])) + ' mes(es), ' + str(int(days[1])) + ' dias'
+
+        	return str(delta.days) + ' dias'
+
+        return 'no hay datos'
+
+    def datosDesde(self):
+    	# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
+        try:
+            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+        except Record.DoesNotExist:
+            ultimoRegistro = None
+
+        try:
+            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+        except Record.DoesNotExist:
+            primerRegistro = None
+
+        if (ultimoRegistro != None and primerRegistro != None):
+        	return primerRegistro.datetime.strftime("%Y-%m-%d") + ' - ' + ultimoRegistro.datetime.strftime("%Y-%m-%d")
+
+        return 'no hay datos'
+
+    def datosPeriodoMes(self):
+    	try:
+            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+        except Record.DoesNotExist:
+            ultimoRegistro = None
+
+        try:
+            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+        except Record.DoesNotExist:
+            primerRegistro = None
+
+        if (ultimoRegistro != None and primerRegistro != None):
+        	delta = ultimoRegistro.datetime - primerRegistro.datetime
+        	months = math.modf(delta.days / 30)
+
+        	return str(months[1])
+
+        return '0'
 
 class StationAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'departamento', 'path_db', 'lat', 'lg')

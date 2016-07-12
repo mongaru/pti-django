@@ -10,22 +10,152 @@
                 todayBtn: true
             });
 
+            $('#conjunto').change(function(){
+                if ($(this).val() == 'porFecha')
+                {
+                    $('#fecha_desde_div').show();
+                    $('#fecha_hasta_div').show();
+                }
+                else
+                {
+                    $('#fecha_desde_div').hide();
+                    $('#fecha_hasta_div').hide();
+                }
+            });
+
             $('#formReporteAnual').submit(function(){
 
-                if ($('#estacion').val() == null)
+                // if ($('#estacion').val() == null)
+                // {
+                //     alert('Debe seleccionar por lo menos una estacion');
+                //     return false;
+                // }
+                if ($('input[name="estacion[]"]:checked').length == 0)
                 {
                     alert('Debe seleccionar por lo menos una estacion');
                     return false;
                 }
 
-                var estaciones = $('#estacion').val().join('-');
+                var estaciones = [];
+                $('input[name="estacion[]"]:checked').each(function(){
+                    estaciones.push($(this).parent().data('id'));
+                });
+
+                // var estaciones = $('#estacion').val().join('-');
+                estaciones = estaciones.join('-');
                 var desde = $('#fecha_desde').val();
                 var hasta = $('#fecha_hasta').val();
                 var formato = $('#formato').val();
+                var conjunto = $('#conjunto').val();
 
-                var url = '/reporte/anual/tabla?desde='+desde+'&hasta='+hasta+'&estaciones='+estaciones+'&formato='+formato;
+                if (conjunto == 'porAnioTipo')
+                {
+                    var url = '/reporte/anual/tipo/tabla?desde='+desde+'&hasta='+hasta+'&estaciones='+estaciones+'&formato='+formato;
+                }
 
+                if (conjunto == 'porFecha')
+                {
+                    var url = '/reporte/anual/tabla?desde='+desde+'&hasta='+hasta+'&estaciones='+estaciones+'&formato='+formato;
+                }
+                
                 window.location.href = url;
+
+                return false;
+            });
+
+            $('th input[type="checkbox"]').click(function(){
+                Tabla.marcarMapa();
+            });
+
+            $('#formFiltro').submit(function(){
+
+                var dpto = $('#filtro-dpto').val();
+                var operador = $('#filtro-meses-operador').val();
+                var meses = $('#filtro-meses').val();
+                var elevacion = $('#filtro-elevacion').val();
+
+                $('th input[type="checkbox"]').each(function(){
+                    $(this).prop("checked", false);
+                });
+
+                $('th.estacionRow').each(function(){
+                    var oculto = false;
+
+                    if (dpto != '')
+                    {
+                        if ($(this).data("departamento") != dpto)
+                        {
+                            $(this).parent().hide();
+                            oculto = true;
+                        }
+                        else
+                        {
+                            $(this).parent().show();
+                        }
+                    }
+
+                    if (meses != '' && oculto == false)
+                    {
+                        meses = parseInt($('#filtro-meses').val());
+                        var valor = parseInt($(this).data("datosperiodomes"));
+                        if (operador == 'mayor')
+                        {
+                            if (valor > meses)
+                            {
+                                $(this).parent().show();
+                            }
+                            else
+                            {
+                                $(this).parent().hide();
+                            }  
+                        }
+                        else if (operador == 'menor')
+                        {
+                            if (valor < meses)
+                            {
+                                $(this).parent().show();
+                            }
+                            else
+                            {
+                                $(this).parent().hide();
+                            }
+                        }
+                        else if (operador == 'igual')
+                        {
+                            if (valor == meses)
+                            {
+                                $(this).parent().show();
+                            }
+                            else
+                            {
+                                $(this).parent().hide();
+                            }
+                        }
+                        else
+                        {
+                            $(this).parent().hide();    
+                        }
+                    }
+
+                    if (elevacion != '' && oculto == false)
+                    {
+                        if ($(this).data("elevacion") != elevacion)
+                        {
+                            $(this).parent().hide();
+                        }
+                        else
+                        {
+                            $(this).parent().show();
+                        }
+                    }
+
+                    if (elevacion == '' && meses == '' && dpto == '')
+                    {
+                        $(this).parent().show();
+                    }
+                });
+
+                Tabla.filtrarMapa();
 
                 return false;
             });
@@ -36,26 +166,98 @@
     <div class="container">
 
         <h1 id="helper-classes" class="page-header">Reporte para Mapeo</h1>
+        
+        <form class="row" name="formFiltro" id="formFiltro">
+          <div class="form-group col-sm-3">
+            <label >Departamento</label>
+            <select id="filtro-dpto" name="filtro-dpto" class="form-control">
+                <option value="">Seleccionar</option>
+                {% for dpto in departamentos %}
+                    <option value="{{ dpto.0 }}">{{ dpto.1}}</option>
+                {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-sm-3">
+            <label >Periodo de Datos</label>
+            <select id="filtro-meses-operador" name="filtro-meses-operador" class="form-control">
+                <option value="mayor">Mayor a</option>
+                <option value="menor">Menor a</option>
+                <option value="igual">Igual a</option>
+            </select>
+            <input type="text" class="form-control" id="filtro-meses" name="filtro-meses" placeholder="Meses">
+          </div>
+          <div class="form-group col-sm-3">
+            <label>Elevacion</label>
+            <input type="text" class="form-control" id="filtro-elevacion" name="filtro-elevacion" placeholder="Metros">
+            <!-- <input type="file" id="exampleInputFile"> -->
+            <!-- <p class="help-block">Example block-level help text here.</p> -->
+          </div>
+            <div class="form-group col-sm-3">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-primary form-control">Filtrar</button>
+            </div>
+        </form>
+
+        <div class="row">
+            <div id="map-filtro" style="width: 100%; height: 400px"></div>
+        </div>
 
         <form id="formReporteAnual" class="form-horizontal" method="GET">
 
-          <div class="form-group">
-            <label for="inputEmail3" class="col-sm-2 control-label">Estaciones</label>
-            <div class="col-sm-10">
-                <select multiple="multiple" size="10" id="estacion" name="estacion" class="form-control">
+            <h3 id="helper-classes" class="">Estaciones</h3>  
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Departamento</th>
+                        <th>Datos desde/hasta</th>
+                        <th>Periodo de datos</th>
+                        <th>Elevacion (mts)</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% for estacion in estaciones %}
-                        <option value="{{ estacion.pk }}">{{ estacion.name }}</option>
-                    {% endfor %}    
+                        <tr>
+                            <!-- <th scope="row">{{ estacion.pk }}</th> -->
+                            <th class="estacionRow" 
+                                data-id="{{ estacion.pk }}"
+                                data-nombre="{{ estacion.name }}"
+                                data-departamento="{{ estacion.departamento }}"
+                                data-datosperiodomes="{{ estacion.datosPeriodoMes }}"
+                                data-elevacion="{{ estacion.elevation }}"
+                                data-latitud="{{ estacion.lat }}"
+                                data-longitud="{{ estacion.lg }}"
+                            >
+                                <input type="checkbox" name="estacion[]" />
+                            </th>
+                            <td>{{ estacion.name }}</td>
+                            <td>{{ estacion.departamentoNombre }}</td>
+                            <td>{{ estacion.datosDesde }}</td>
+                            <td>{{ estacion.datosPeriodo }}</td>
+                            <td>{{ estacion.elevation }}</td>
+                        </tr>
+                    {% endfor %} 
+                </tbody>
+            </table>
+
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Conjunto de Datos</label>
+            <div class="col-sm-10">
+                <select id="conjunto" name="conjunto" class="form-control">
+                    <option value="porAnioTipo">Por anho tipo</option>
+                    <option value="porFecha">Por fechas</option>
                 </select>
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="fecha_desde_div" style="display: none;">
             <label for="inputEmail3" class="col-sm-2 control-label">Desde</label>
             <div class="col-sm-10">
               <input type="text" class="form-control datepicker" id="fecha_desde" name="fecha_desde" placeholder="Fecha Desde">
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-group" id="fecha_hasta_div" style="display: none;">
             <label for="inputPassword3" class="col-sm-2 control-label">Hasta</label>
             <div class="col-sm-10">
               <input type="text" class="form-control datepicker" id="fecha_hasta" name="fecha_hasta" placeholder="Fecha Hasta">
@@ -73,7 +275,7 @@
           
           <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-              <button type="submit" class="btn btn-default">Generar</button>
+              <button type="submit" class="btn btn-success">Generar</button>
             </div>
           </div>
         </form>

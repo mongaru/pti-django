@@ -18,12 +18,14 @@ from django.contrib import admin
 # from vialidad.views import (home, login, register)
 from analisis_variables import views as analisisVariablesViews
 from analisis_variables import periodo_controller as analisisVariablesPeriodo
+from analisis_variables import anio_tipo_controller as analisisVariablesAnioTipo
 
 admin.autodiscover()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
+    url(r'^reporte/anual/tipo/tabla', analisisVariablesAnioTipo.reporte_anual_generacion),
     url(r'^reporte/anual/tabla', analisisVariablesViews.reporte_anual_generacion),
     url(r'^reporte/anual', analisisVariablesViews.reporte_anual),
 

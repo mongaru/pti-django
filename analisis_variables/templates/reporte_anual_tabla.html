@@ -42,7 +42,11 @@
     		{% for fila in datosExportar %}
                 <tr>
                     {% for dato in fila %}
-                        <td>{{ dato|floatformat:2 }}</td>
+                        {% if dato|is_numeric %}
+                            <td>{{ dato|floatformat:2 }}</td>
+                        {% else %}
+                            <td>{{ dato }}</td>
+                        {% endif %}
                     {% endfor %}
                 </tr>
     		{% endfor %}
