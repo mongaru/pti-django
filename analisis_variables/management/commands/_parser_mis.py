@@ -154,7 +154,8 @@ class ParserMIS():
                 registrosConErrores.append(registro)
 
         # se guarda todo en un solo insert, para performance
-        Registro.objects.bulk_create(registrosGuardar)
+        if (len(registrosGuardar) > 0):
+            Record.objects.bulk_create(registrosGuardar)
 
         # se actualiza el ultimo archivo cargado
         self._write_last_update_file(misFileName)
