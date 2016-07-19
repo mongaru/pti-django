@@ -47,18 +47,24 @@ class ParserMIS():
                 except Record.DoesNotExist:
                     ultimoRegistro = None
 
-                registrosConErrores = self.procesarArchivo(registrosConErrores, mis_file, ultimoRegistro)
+                registrosConErrores = self.procesarArchivo(registrosConErrores, mis_file, archivo, ultimoRegistro)
 
 
         return registrosConErrores
 
-    def procesarArchivo(self, registrosConErrores, mis_filepathname, ultimoRegistro):
+    def procesarArchivo(self, registrosConErrores, mis_filepathname, misFileName, ultimoRegistro):
 
         # verificar que archivo existe, en realidad se deberia enviar un error o hacer un log.
         if (os.path.isfile(mis_filepathname) == False):
             return registrosConErrores
 
         pprint.pprint('lee archivo' + mis_filepathname)
+
+        lastUpdatedFile = self._get_last_update_file()
+
+        # en caso de que el nombre del archivo sea menor al ultimo leido entonces no procesar dicho archivo
+        if (lastUpdatedFile != None and lastUpdatedFile >= misFileName):
+            return registrosConErrores
 
         controlesDict = self.getControles()
         estacion = self.station
@@ -117,7 +123,7 @@ class ParserMIS():
                 registrosConSensores[fechaTexto].append({'sensor' : sensorCodigo, 'valor' : datoSensor[2]})
 
 
-
+        registrosGuardar = []
         for claveFecha in registrosConSensores:
 
             registro = self.procesarRegistro(claveFecha, registrosConSensores[claveFecha])
@@ -141,10 +147,17 @@ class ParserMIS():
             # pprint.pprint(registro.barometer)
             # pprint.pprint(isinstance(registro.barometer, float))
             
-            registro.save()
+            # registro.save()
+            registrosGuardar.append(registro)
 
             if (registro.consistente == 'no'):
                 registrosConErrores.append(registro)
+
+        # se guarda todo en un solo insert, para performance
+        Registro.objects.bulk_create(registrosGuardar)
+
+        # se actualiza el ultimo archivo cargado
+        self._write_last_update_file(misFileName)
 
         return registrosConErrores
 
@@ -369,3 +382,17 @@ class ParserMIS():
         for ctrl in Control.CONTROL:
             if (str(ctrl[0]) == str(indice)):
                 return ctrl[1]
+
+    def _write_last_update_file(self, content):
+        f2 = open('last-update-file.txt', 'w')
+        f2.write(content)
+        f2.close()
+
+    def _get_last_update_file(self):
+        if (isfile("last-update-file.txt")):
+            lines = [line.rstrip('\n') for line in open("last-update-file.txt")]
+
+            for line in lines:
+                return line
+        else:
+            return None

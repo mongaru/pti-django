@@ -131,8 +131,13 @@ def _generar_reporte_por_anio(valoresEstacion):
 		posicionValor = valoresEstacion['valores'][i][0]
 		posicionValor = posicionValor[5:len(posicionValor)]
 
-		columnas[posicionValor] = i # obtenemos la clave de la fecha y colocamos el contador para saber su posicion en el arreglo
-		columnasNombre.append(posicionValor) # cargamos el arreglo de titulos de columnas para el grafico
+		if (posicionValor not in columnas):
+			columnas[posicionValor] = contador # obtenemos la clave de la fecha y colocamos el contador para saber su posicion en el arreglo
+			columnasNombre.append(posicionValor) # cargamos el arreglo de titulos de columnas para el grafico
+			contador = contador + 1
+		
+		#columnas[posicionValor] = i # obtenemos la clave de la fecha y colocamos el contador para saber su posicion en el arreglo
+		# columnasNombre.append(posicionValor) # cargamos el arreglo de titulos de columnas para el grafico
 
 	result = {};
 
