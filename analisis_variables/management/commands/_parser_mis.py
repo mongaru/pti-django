@@ -35,6 +35,10 @@ class ParserMIS():
         # datos.sort(key=lambda x: obtenerFechaDeTexto(x['date_rain']), reverse=False)
         archivos = sorted(archivos)
 
+        lastUpdatedFile = self._get_last_update_file()
+
+        archivos = [a for a in archivos if self._filtrar_por_archivo(lastUpdatedFile, a)]
+
         # por cada archivo hay que analizar si los datos ya estan cargados de acuerdo al nombre del archivo
         for archivo in archivos:
             if ".MIS" in archivo:
@@ -383,6 +387,16 @@ class ParserMIS():
         for ctrl in Control.CONTROL:
             if (str(ctrl[0]) == str(indice)):
                 return ctrl[1]
+
+    def _filtrar_por_archivo(ultimoArchivo, archivoActual):
+        
+        if ultimoArchivo == None:
+            return True
+
+        if (ultimoArchivo >= archivoActual)
+            return False
+
+        return True
 
     def _write_last_update_file(self, content):
         f2 = open('last-update-file.txt', 'w')
