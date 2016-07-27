@@ -403,9 +403,9 @@ class ParserMIS():
         f2.write(content)
         f2.close()
 
-    def _get_last_update_file(self):
-        if (isfile("last-update-file.txt")):
-            lines = [line.rstrip('\n') for line in open("last-update-file.txt")]
+    def _get_last_update_file(self, folder):
+        if (isfile(folder+"/last-update-file.txt")):
+            lines = [line.rstrip('\n') for line in open(folder+"/last-update-file.txt")]
 
             for line in lines:
                 return line
