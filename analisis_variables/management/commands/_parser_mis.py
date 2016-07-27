@@ -110,6 +110,10 @@ class ParserMIS():
 
                 datoSensor = line.split(';')
 
+                # si los datos no estan completos a veces vienen solo dos partes del dato, en este caso rechazar el valor para evitar errores de acceso al arreglo de datos
+                if (len(datoSensor) != 3):
+                    continue;
+
                 fechaTexto = datoSensor[0] + datoSensor[1].replace(":", "")
 
                 fechaRegistro = self.getDatetimeValue(fechaTexto)
