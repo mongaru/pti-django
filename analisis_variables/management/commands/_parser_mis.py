@@ -399,13 +399,13 @@ class ParserMIS():
         return True
 
     def _write_last_update_file(self, content):
-        f2 = open(self.station.pk+'-last-update-file.txt', 'w')
+        f2 = open(str(self.station.pk)+'-last-update-file.txt', 'w')
         f2.write(content)
         f2.close()
 
     def _get_last_update_file(self):
-        if (isfile(self.station.pk+"-last-update-file.txt")):
-            lines = [line.rstrip('\n') for line in open(self.station.pk+"-last-update-file.txt")]
+        if (isfile(str(self.station.pk)+"-last-update-file.txt")):
+            lines = [line.rstrip('\n') for line in open(str(self.station.pk)+"-last-update-file.txt")]
 
             for line in lines:
                 return line
