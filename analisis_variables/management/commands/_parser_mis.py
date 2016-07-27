@@ -35,7 +35,7 @@ class ParserMIS():
         # datos.sort(key=lambda x: obtenerFechaDeTexto(x['date_rain']), reverse=False)
         archivos = sorted(archivos)
 
-        lastUpdatedFile = self._get_last_update_file(mis_filepathname)
+        lastUpdatedFile = self._get_last_update_file()
 
         archivos = [a for a in archivos if self._filtrar_por_archivo(lastUpdatedFile, a)]
 
@@ -64,7 +64,7 @@ class ParserMIS():
 
         pprint.pprint('lee archivo' + mis_filepathname)
 
-        lastUpdatedFile = self._get_last_update_file(fileFolderPath)
+        lastUpdatedFile = self._get_last_update_file()
 
         # en caso de que el nombre del archivo sea menor al ultimo leido entonces no procesar dicho archivo
         if (lastUpdatedFile != None and lastUpdatedFile >= misFileName):
@@ -162,7 +162,7 @@ class ParserMIS():
             Record.objects.bulk_create(registrosGuardar)
 
         # se actualiza el ultimo archivo cargado
-        self._write_last_update_file(misFileName, fileFolderPath)
+        self._write_last_update_file(misFileName)
 
         return registrosConErrores
 
@@ -398,14 +398,14 @@ class ParserMIS():
 
         return True
 
-    def _write_last_update_file(self, content, folder):
-        f2 = open(folder+'/last-update-file.txt', 'w')
+    def _write_last_update_file(self, content):
+        f2 = open(self.station.pk+'-last-update-file.txt', 'w')
         f2.write(content)
         f2.close()
 
-    def _get_last_update_file(self, folder):
-        if (isfile(folder+"/last-update-file.txt")):
-            lines = [line.rstrip('\n') for line in open(folder+"/last-update-file.txt")]
+    def _get_last_update_file(self):
+        if (isfile(self.station.pk+"-last-update-file.txt")):
+            lines = [line.rstrip('\n') for line in open(self.station.pk+"-last-update-file.txt")]
 
             for line in lines:
                 return line
