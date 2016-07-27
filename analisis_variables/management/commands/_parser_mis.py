@@ -51,12 +51,12 @@ class ParserMIS():
                 except Record.DoesNotExist:
                     ultimoRegistro = None
 
-                registrosConErrores = self.procesarArchivo(registrosConErrores, mis_file, archivo, ultimoRegistro)
+                registrosConErrores = self.procesarArchivo(registrosConErrores, mis_file, archivo, ultimoRegistro, mis_filepathname)
 
 
         return registrosConErrores
 
-    def procesarArchivo(self, registrosConErrores, mis_filepathname, misFileName, ultimoRegistro):
+    def procesarArchivo(self, registrosConErrores, mis_filepathname, misFileName, ultimoRegistro, fileFolderPath):
 
         # verificar que archivo existe, en realidad se deberia enviar un error o hacer un log.
         if (os.path.isfile(mis_filepathname) == False):
@@ -162,7 +162,7 @@ class ParserMIS():
             Record.objects.bulk_create(registrosGuardar)
 
         # se actualiza el ultimo archivo cargado
-        self._write_last_update_file(misFileName)
+        self._write_last_update_file(misFileName, fileFolderPath)
 
         return registrosConErrores
 
@@ -388,18 +388,18 @@ class ParserMIS():
             if (str(ctrl[0]) == str(indice)):
                 return ctrl[1]
 
-    def _filtrar_por_archivo(ultimoArchivo, archivoActual):
+    def _filtrar_por_archivo(self, ultimoArchivo, archivoActual):
         
         if ultimoArchivo == None:
             return True
 
-        if (ultimoArchivo >= archivoActual)
+        if (ultimoArchivo >= archivoActual):
             return False
 
         return True
 
-    def _write_last_update_file(self, content):
-        f2 = open('last-update-file.txt', 'w')
+    def _write_last_update_file(self, content, folder):
+        f2 = open(folder+'/last-update-file.txt', 'w')
         f2.write(content)
         f2.close()
 
