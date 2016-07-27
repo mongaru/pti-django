@@ -35,7 +35,7 @@ class ParserMIS():
         # datos.sort(key=lambda x: obtenerFechaDeTexto(x['date_rain']), reverse=False)
         archivos = sorted(archivos)
 
-        lastUpdatedFile = self._get_last_update_file()
+        lastUpdatedFile = self._get_last_update_file(mis_filepathname)
 
         archivos = [a for a in archivos if self._filtrar_por_archivo(lastUpdatedFile, a)]
 
@@ -64,7 +64,7 @@ class ParserMIS():
 
         pprint.pprint('lee archivo' + mis_filepathname)
 
-        lastUpdatedFile = self._get_last_update_file()
+        lastUpdatedFile = self._get_last_update_file(fileFolderPath)
 
         # en caso de que el nombre del archivo sea menor al ultimo leido entonces no procesar dicho archivo
         if (lastUpdatedFile != None and lastUpdatedFile >= misFileName):
