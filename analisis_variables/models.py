@@ -9,6 +9,7 @@ from django.db.models import Min, Sum, OneToOneField
 from django.http import HttpResponse
 # from stations.action import export_to_csv
 from django.core.cache import cache
+from django.core.cache.backends.base import InvalidCacheBackendError
 
 import math
 import pprint
@@ -83,21 +84,22 @@ class Station(models.Model):
 
     def datosPeriodo(self):
 
-    	try: 
-    		datosDelPeriodo = cache['datosDelPeriodo-'+str(self.pk)]
-    	except InvalidCacheBackendError:
-    		datosDelPeriodo = None
+    	# try: 
+    		# datosDelPeriodo = cache['datosDelPeriodo-'+str(self.pk)]
+		datosDelPeriodo = cache.get('datosDelPeriodo-'+str(self.pk))
+    	# except InvalidCacheBackendError:
+    		# datosDelPeriodo = None
 
 		if (datosDelPeriodo != None):
 			pprint.pprint('desde el cache')
 			return datosDelPeriodo
-    	else:
-    		pprint.pprint('desde el query')
+		else:
+			pprint.pprint('desde el query')
 			# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
-	        try:
-	            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
-	        except Record.DoesNotExist:
-	            ultimoRegistro = None
+			try:
+			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+			except Record.DoesNotExist:
+			    ultimoRegistro = None
 
 	        try:
 	            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
