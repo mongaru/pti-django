@@ -8,6 +8,8 @@ from daterange_filter.filter import DateRangeFilter
 from django.db.models import Min, Sum, OneToOneField
 from django.http import HttpResponse
 # from stations.action import export_to_csv
+from django.core.cache import cache
+
 import math
 import pprint
 
@@ -80,39 +82,58 @@ class Station(models.Model):
     	# return ''
 
     def datosPeriodo(self):
-		# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
-        try:
-            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
-        except Record.DoesNotExist:
-            ultimoRegistro = None
 
-        try:
-            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
-        except Record.DoesNotExist:
-            primerRegistro = None
+    	try: 
+    		datosDelPeriodo = cache['datosDelPeriodo-'+str(self.pk)]
+    	except InvalidCacheBackendError:
+    		datosDelPeriodo = None
 
-        if (ultimoRegistro != None and primerRegistro != None):
-        	delta = ultimoRegistro.datetime - primerRegistro.datetime
-        	years = math.modf(delta.days / 365)
-        	months = math.modf(delta.days / 30)
+		if (datosDelPeriodo != None):
+			pprint.pprint('desde el cache')
+			return datosDelPeriodo
+    	else:
+    		pprint.pprint('desde el query')
+			# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
+	        try:
+	            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+	        except Record.DoesNotExist:
+	            ultimoRegistro = None
 
-        	# en caso de que hayan anhos de datos, agregar los dias
-        	if (years[1] > 0):
-        		# como la division es entera entonces coercionamos a float la constante y luego obtenemos la parte decimal
-        		days = (delta.days / float(365)) - years[1]
-        		# la parte decimal seria el porcentaje de la constante que corresponderia a los dias
-        		days = math.modf(days * float(365))
-        		return str(int(years[1])) + ' anho(s), ' + str(int(days[1])) + ' dias'
+	        try:
+	            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+	        except Record.DoesNotExist:
+	            primerRegistro = None
 
-        	# en caso de que hayan solo meses de datos, agregamos los dias con el mismo calculo que el paso anterior
-        	if (months[1] > 0):
-        		days = (delta.days / float(30)) - months[1]
-        		days = math.modf(days * float(30))
-        		return str(int(months[1])) + ' mes(es), ' + str(int(days[1])) + ' dias'
+	        if (ultimoRegistro != None and primerRegistro != None):
+	        	delta = ultimoRegistro.datetime - primerRegistro.datetime
+	        	years = math.modf(delta.days / 365)
+	        	months = math.modf(delta.days / 30)
 
-        	return str(delta.days) + ' dias'
+	        	# en caso de que hayan anhos de datos, agregar los dias
+	        	if (years[1] > 0):
+	        		# como la division es entera entonces coercionamos a float la constante y luego obtenemos la parte decimal
+	        		days = (delta.days / float(365)) - years[1]
+	        		# la parte decimal seria el porcentaje de la constante que corresponderia a los dias
+	        		days = math.modf(days * float(365))
 
-        return 'no hay datos'
+	        		datosPeriodoTexto = str(int(years[1])) + ' anho(s), ' + str(int(days[1])) + ' dias'
+	        		cache.set('datosDelPeriodo-'+str(self.pk), datosPeriodoTexto, 86400)
+	        		return datosPeriodoTexto
+
+	        	# en caso de que hayan solo meses de datos, agregamos los dias con el mismo calculo que el paso anterior
+	        	if (months[1] > 0):
+	        		days = (delta.days / float(30)) - months[1]
+	        		days = math.modf(days * float(30))
+	        		
+	        		datosPeriodoTexto =  str(int(months[1])) + ' mes(es), ' + str(int(days[1])) + ' dias'
+	        		cache.set('datosDelPeriodo-'+str(self.pk), datosPeriodoTexto, 86400)
+	        		return datosPeriodoTexto
+
+	        	datosPeriodoTexto = str(delta.days) + ' dias'
+	        	cache.set('datosDelPeriodo-'+str(self.pk), datosPeriodoTexto, 86400)
+	        	return datosPeriodoTexto
+
+	        return 'no hay datos'
 
     def datosDesde(self):
     	# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos

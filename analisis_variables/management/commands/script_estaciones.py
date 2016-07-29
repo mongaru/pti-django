@@ -5,6 +5,7 @@ from analisis_variables.models import Station, Record
 # from parser import ParserUno
 from _parser_mis import ParserMIS
 from _parser_arc import ParserARC
+from _parser_tech import ParserTech
 # from parser_rainwise import ParserRainwise
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -62,6 +63,11 @@ class Command(BaseCommand):
 
             if (estacion.type.mark == 'ARC'):
                 parser = ParserARC(estacion)
+                # ejecutar el parser y obtener el listado de registros con errores para el reporte
+                registrosConErrores = parser.runParser()
+
+            if (estacion.type.mark == 'Tech'):
+                parser = ParserTech(estacion)
                 # ejecutar el parser y obtener el listado de registros con errores para el reporte
                 registrosConErrores = parser.runParser()
 
