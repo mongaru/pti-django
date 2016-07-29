@@ -95,7 +95,7 @@ class ParserTech():
                         rowCount = rowCount + 1
                    
                     pprint.pprint(fechaRegistro)
-                     
+
                     registro.datetime = fechaRegistro
                     registro.usunits = 1
                     registro.interval = 1
@@ -108,9 +108,15 @@ class ParserTech():
                             registro.heatindex = row[i]
 
                         if (nombreColumna == "WS_ms_Avg"):
+                            registro.windspeed50 = row[i]
+
+                        if (nombreColumna == "WS_ms_2_Avg"):
                             registro.windspeed = row[i]
 
                         if (nombreColumna == "WindDir"):
+                            registro.winddir50 = row[i]
+
+                        if (nombreColumna == "WindDir_2"):
                             registro.winddir = row[i]
 
                         if (nombreColumna == "SlrMJ_Tot"):

@@ -242,6 +242,9 @@ class Record(models.Model):
 	intempbatterystatus = models.FloatField(default=0, db_column='inTempBatteryStatus', blank=True,
 	                                        null=True)  # Field name made lowercase.
 
+	windspeed50 = models.FloatField(db_column='windSpeed50', blank=True, null=True)  # Field name made lowercase.
+	winddir50 = models.FloatField(db_column='windDir50', blank=True, null=True)  # Field name made lowercase.
+
 	consistente = models.CharField(max_length=255, null=False)
 
 	@property
