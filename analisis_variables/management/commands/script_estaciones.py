@@ -56,10 +56,10 @@ class Command(BaseCommand):
             #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
             #     registrosConErrores = parser.runParser()
 
-            # if (estacion.type.mark == 'MIS'):
-            #     parser = ParserMIS(estacion)
-            #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
-            #     registrosConErrores = parser.runParser()
+            if (estacion.type.mark == 'MIS'):
+                parser = ParserMIS(estacion)
+                # ejecutar el parser y obtener el listado de registros con errores para el reporte
+                registrosConErrores = parser.runParser()
 
             if (estacion.type.mark == 'ARC'):
                 parser = ParserARC(estacion)
