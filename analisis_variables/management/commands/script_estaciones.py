@@ -6,6 +6,7 @@ from analisis_variables.models import Station, Record
 from _parser_mis import ParserMIS
 from _parser_arc import ParserARC
 from _parser_tech import ParserTech
+from _parser_sutron_csv import ParserSutronCSV
 # from parser_rainwise import ParserRainwise
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -68,6 +69,11 @@ class Command(BaseCommand):
 
             if (estacion.type.mark == 'Tech'):
                 parser = ParserTech(estacion)
+                # ejecutar el parser y obtener el listado de registros con errores para el reporte
+                registrosConErrores = parser.runParser()
+
+            if (estacion.type.mark == 'SutronCSV'):
+                parser = ParserSutronCSV(estacion)
                 # ejecutar el parser y obtener el listado de registros con errores para el reporte
                 registrosConErrores = parser.runParser()
 
