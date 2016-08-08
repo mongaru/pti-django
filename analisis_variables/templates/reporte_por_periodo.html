@@ -39,13 +39,13 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                if ($('#estacion').val() == null)
+                if ($('input[name=estacion]:checked').val() == null)
                 {
                     alert('Debe seleccionar por lo menos una estacion');
                     return false;
                 }
 
-                var estaciones = $('#estacion').val();
+                var estaciones = $('input[name=estacion]:checked').val();
                 var desde = $('#fecha_desde').val();
                 var hasta = $('#fecha_hasta').val();
                 var formato = $('#formato').val();
@@ -78,21 +78,54 @@
 
         <form id="formReporteAnual" class="form-horizontal" method="GET">
 
-          <div class="form-group">
-            <label for="inputEmail3" class="col-sm-2 control-label">Estaciones</label>
-            <div class="col-sm-10">
-                <select id="estacion" name="estacion" class="form-control">
-                    {% for estacion in estaciones %}
-                        <option value="{{ estacion.pk }}">{{ estacion.name }}</option>
-                    {% endfor %}    
-                </select>
+            <h3 id="helper-classes" class="">Estaciones</h3>  
+
+            <div class="row" style="height: 400px; overflow: scroll; margin-bottom: 20px;">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Propietario</th>
+                            <th>Departamento</th>
+                            <th>Datos desde/hasta</th>
+                            <th>Periodo de datos</th>
+                            <th>Elevacion (mts)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for estacion in estaciones %}
+                            <tr>
+                                <!-- <th scope="row">{{ estacion.pk }}</th> -->
+                                <th class="estacionRow" 
+                                    data-id="{{ estacion.pk }}"
+                                    data-nombre="{{ estacion.name }}"
+                                    data-departamento="{{ estacion.departamento }}"
+                                    data-datosperiodomes="{{ estacion.datosPeriodoMes }}"
+                                    data-elevacion="{{ estacion.elevation }}"
+                                    data-latitud="{{ estacion.lat }}"
+                                    data-longitud="{{ estacion.lg }}"
+                                >
+                                    <input type="radio" name="estacion" value="{{ estacion.pk }}" />
+                                </th>
+                                <td>{{ estacion.nombreCompleto }}</td>
+                                <td>{{ estacion.propietarioNombre }}</td>
+                                <td>{{ estacion.departamentoNombre }}</td>
+                                <td>{{ estacion.datosDesde }}</td>
+                                <td>{{ estacion.datosPeriodoMes|floatformat:0 }} (meses)</td>
+                                <td>{{ estacion.elevation|floatformat:0 }}</td>
+                            </tr>
+                        {% endfor %} 
+                    </tbody>
+                </table>
             </div>
-          </div>
+
+          
           <div class="form-group">
             <label class="col-sm-2 control-label">Conjunto de Datos</label>
             <div class="col-sm-10">
                 <select id="conjunto" name="conjunto" class="form-control">
-                    <option value="porAnioTipo">Por anho tipo</option>
+                    <option value="porAnioTipo">Por a&ntilde;o tipo</option>
                     <option value="porFecha">Por fechas</option>
                 </select>
             </div>
@@ -110,7 +143,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="inputPassword3" class="col-sm-2 control-label">Promedio</label>
+            <label for="inputPassword3" class="col-sm-2 control-label">Periodo</label>
             <div class="col-sm-10">
                 <select id="periodo" name="periodo" class="form-control">
                     <option value="hora">Por hora</option>
@@ -137,7 +170,10 @@
                     <option value="winddir">Viento Direccion</option>
                     <option value="windspeed">Viento Velocidad</option>
                     <option value="temperatura">Temperatura</option>
-                    <option value="presion">presion</option>
+                    <option value="presion">Presion</option>
+                    <option value="radiation">Radiacion</option>
+                    <option value="winddir50">Viento Direccion 50m</option>
+                    <option value="windspeed50">Viento Velocidad 50m</option>
                 </select>
             </div>
           </div>

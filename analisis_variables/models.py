@@ -27,68 +27,84 @@ class TypeStationAdmin(admin.ModelAdmin):
 
 class Station(models.Model):
     
-    DEPTOS = ((1, 'Concepcion'), (2, 'San Pedro'), (3, 'Coridillera'), (4, 'Guaira'), (5, 'Caaguazu'), (6, 'Caazapa'),
-              (7, 'Itapua'),
-              (8, 'Misiones'), (9, 'Paraguari'), (10, 'Alto Parana'), (11, 'Central'), (12, 'Neembucu'),
-              (13, 'Amambay'), (14, 'Canindeyu'), (15, 'Presidente Hayes'), (16, 'Alto Paraguay'), (17, 'Boqueron'),)
-    
-    name = models.CharField(max_length=255)
-    path_db = models.CharField(max_length=255)
-    date_installation = models.DateField(db_column='date')  # Field name made lowercase.
-    time_installation = models.TimeField(db_column='hora', null=True)  # Field name made lowercase.
-    #departamento = models.IntegerField(unique=True, choices=DEPTOS, default=0)
-    departamento = models.IntegerField(choices=DEPTOS, default=0)
-    lat = models.FloatField()
-    lg = models.FloatField()
-    elevation = models.FloatField()
-    type = models.ForeignKey(TypeStation)
-    obs = models.CharField(max_length=255, null=True)
+	DEPTOS = ((1, 'Concepcion'), (2, 'San Pedro'), (3, 'Coridillera'), (4, 'Guaira'), (5, 'Caaguazu'), (6, 'Caazapa'),
+	          (7, 'Itapua'),
+	          (8, 'Misiones'), (9, 'Paraguari'), (10, 'Alto Parana'), (11, 'Central'), (12, 'Neembucu'),
+	          (13, 'Amambay'), (14, 'Canindeyu'), (15, 'Presidente Hayes'), (16, 'Alto Paraguay'), (17, 'Boqueron'),)
 
-    def __unicode__(self):
-        return self.name
 
-    def decdeg2dms(dd):
-        is_positive = dd >= 0
-        dd = abs(dd)
-        minutes,seconds = divmod(dd*3600,60)
-        degrees,minutes = divmod(minutes,60)
-        degrees = degrees if is_positive else -degrees
-        return (degrees,minutes,seconds)
+	FABRICANTES = ((1, 'Davis'), (2, 'Sutron'), (3, 'OTT'),)
+	PROPIETARIOS = ((1, 'DINAC'), (2, 'PTI'), (3, 'FECOPROD'),)
 
-    def latitudText(self):
-        is_positive = self.lat >= 0
-        dd = abs(self.lat)
-        minutes,seconds = divmod(dd*3600,60)
-        degrees,minutes = divmod(minutes,60)
-        degrees = degrees if is_positive else -degrees
-        return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
+	name = models.CharField(max_length=255)
+	path_db = models.CharField(max_length=255)
+	date_installation = models.DateField(db_column='date')  # Field name made lowercase.
+	time_installation = models.TimeField(db_column='hora', null=True)  # Field name made lowercase.
+	#departamento = models.IntegerField(unique=True, choices=DEPTOS, default=0)
+	departamento = models.IntegerField(choices=DEPTOS, default=0)
+	lat = models.FloatField()
+	lg = models.FloatField()
+	elevation = models.FloatField()
+	type = models.ForeignKey(TypeStation)
+	obs = models.CharField(max_length=255, null=True)
 
-    def longitudText(self):
-        is_positive = self.lg >= 0
-        dd = abs(self.lat)
-        minutes,seconds = divmod(dd*3600,60)
-        degrees,minutes = divmod(minutes,60)
-        degrees = degrees if is_positive else -degrees
-        return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
+	fabricante = models.IntegerField(choices=FABRICANTES, default=0, null=True)
+	propietario = models.IntegerField(choices=PROPIETARIOS, default=0, null=True)
+	dinac_numero = models.CharField(max_length=255, null=True)
+	dinac_id = models.IntegerField(default=0, null=True)
 
-    def departamentoNombre(self):
-    	# http://stackoverflow.com/questions/4320679/django-display-choice-value
-    	return self.get_departamento_display()
+	def __unicode__(self):
+	    return self.name
 
-    	# otra solucion
-    	# for dpto in self.DEPTOS:
-    	# 	if (dpto[0] == self.departamento)
-    	# 		return dpto[1]
+	def decdeg2dms(dd):
+	    is_positive = dd >= 0
+	    dd = abs(dd)
+	    minutes,seconds = divmod(dd*3600,60)
+	    degrees,minutes = divmod(minutes,60)
+	    degrees = degrees if is_positive else -degrees
+	    return (degrees,minutes,seconds)
 
-    	# return ''
+	def latitudText(self):
+	    is_positive = self.lat >= 0
+	    dd = abs(self.lat)
+	    minutes,seconds = divmod(dd*3600,60)
+	    degrees,minutes = divmod(minutes,60)
+	    degrees = degrees if is_positive else -degrees
+	    return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
 
-    def datosPeriodo(self):
+	def longitudText(self):
+	    is_positive = self.lg >= 0
+	    dd = abs(self.lat)
+	    minutes,seconds = divmod(dd*3600,60)
+	    degrees,minutes = divmod(minutes,60)
+	    degrees = degrees if is_positive else -degrees
+	    return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
 
-    	# try: 
-    		# datosDelPeriodo = cache['datosDelPeriodo-'+str(self.pk)]
+	def departamentoNombre(self):
+		# http://stackoverflow.com/questions/4320679/django-display-choice-value
+		return self.get_departamento_display()
+
+		# otra solucion
+		# for dpto in self.DEPTOS:
+		# 	if (dpto[0] == self.departamento)
+		# 		return dpto[1]
+
+		# return ''
+
+	def nombreCompleto(self):
+
+		if (self.dinac_numero == None or self.dinac_numero == ''):
+			return self.name
+		else:
+			return self.dinac_numero + ' - ' + self.name
+
+	def propietarioNombre(self):
+		# http://stackoverflow.com/questions/4320679/django-display-choice-value
+		return self.get_propietario_display()
+
+	def datosPeriodo(self):
+
 		datosDelPeriodo = cache.get('datosDelPeriodo-'+str(self.pk))
-    	# except InvalidCacheBackendError:
-    		# datosDelPeriodo = None
 
 		if (datosDelPeriodo != None):
 			pprint.pprint('desde el cache')
@@ -137,41 +153,60 @@ class Station(models.Model):
 
 	        return 'no hay datos'
 
-    def datosDesde(self):
-    	# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
-        try:
-            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
-        except Record.DoesNotExist:
-            ultimoRegistro = None
+	def datosDesde(self):
 
-        try:
-            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
-        except Record.DoesNotExist:
-            primerRegistro = None
+		datosDelPeriodo = cache.get('datosDelPeriodoDesde-'+str(self.pk))
 
-        if (ultimoRegistro != None and primerRegistro != None):
-        	return primerRegistro.datetime.strftime("%Y-%m-%d") + ' - ' + ultimoRegistro.datetime.strftime("%Y-%m-%d")
+		if (datosDelPeriodo != None):
+			pprint.pprint('desde el cache desde')
+			return datosDelPeriodo
+		else:
+			pprint.pprint('desde el query desde')
+			# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
+			try:
+			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+			except Record.DoesNotExist:
+			    ultimoRegistro = None
 
-        return 'no hay datos'
+			try:
+			    primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+			except Record.DoesNotExist:
+			    primerRegistro = None
 
-    def datosPeriodoMes(self):
-    	try:
-            ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
-        except Record.DoesNotExist:
-            ultimoRegistro = None
+			if (ultimoRegistro != None and primerRegistro != None):
+				valorDesde = primerRegistro.datetime.strftime("%d-%m-%Y") + ' - ' + ultimoRegistro.datetime.strftime("%d-%m-%Y")
+				cache.set('datosDelPeriodoDesde-'+str(self.pk), valorDesde, 86400)
+				return valorDesde
 
-        try:
-            primerRegistro = Record.objects.filter(station=self).earliest('datetime')
-        except Record.DoesNotExist:
-            primerRegistro = None
+			return 'no hay datos'
 
-        if (ultimoRegistro != None and primerRegistro != None):
-        	delta = ultimoRegistro.datetime - primerRegistro.datetime
-        	months = math.modf(delta.days / 30)
+	def datosPeriodoMes(self):
 
-        	return str(months[1])
+		datosDelPeriodo = cache.get('datosDelPeriodoMes-'+str(self.pk))
 
-        return '0'
+		if (datosDelPeriodo != None):
+			pprint.pprint('desde el cache mes')
+			return datosDelPeriodo
+		else:
+			pprint.pprint('desde el query mes')
+			try:
+			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
+			except Record.DoesNotExist:
+			    ultimoRegistro = None
+
+			try:
+			    primerRegistro = Record.objects.filter(station=self).earliest('datetime')
+			except Record.DoesNotExist:
+			    primerRegistro = None
+
+			if (ultimoRegistro != None and primerRegistro != None):
+				delta = ultimoRegistro.datetime - primerRegistro.datetime
+				months = math.modf(delta.days / 30)
+
+				cache.set('datosDelPeriodoMes-'+str(self.pk), months[1], 86400)
+				return str(int(months[1]))
+
+			return '0'
 
 class StationAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'departamento', 'path_db', 'lat', 'lg')

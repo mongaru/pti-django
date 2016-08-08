@@ -20,27 +20,35 @@ Tabla.cargarPuntos = function()
     $('th.estacionRow').each(function(){
         
         var latLng = new google.maps.LatLng($(this).data('latitud'), $(this).data('longitud'));
+        var nombre = $(this).data('nombre');
+        var id = $(this).data('id');
 
-        _marker_selector = new google.maps.Marker({
-            position: latLng,
-            title: $(this).data('nombre'),
-            map: Tabla.mapa,
-            // draggable: true,
-            infoNombre : $(this).data('nombre'),
-            infoCodigo : $(this).data('id'),
-            // infoLink : estacion.detailsUrl
-            icon : '/static/image/icon-orange.png'
-        });
-
-        _marker_selector.addListener('click', function() {
-            // var contenido = '<div id="content"><h1 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h1><p>'+_marker_selector.infoLink+'</p></div>'
-            var contenido = '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
-            Tabla.infowindow.setContent(contenido);
-            Tabla.infowindow.open(Tabla.mapa, _marker_selector);
-        });
-
-        Tabla.marcadores.push(_marker_selector);
+        Tabla.crearMarker(latLng, nombre, id);
     });
+}
+
+Tabla.crearMarker = function(latLng, nombre, id)
+{
+    var _marker_selector = new google.maps.Marker({
+        position: latLng,
+        title: nombre,
+        map: Tabla.mapa,
+        // draggable: true,
+        infoNombre : nombre,
+        infoCodigo : id,
+        // infoLink : estacion.detailsUrl
+        icon : '/static/image/icon-orange.png'
+    });
+
+    google.maps.event.addListener(_marker_selector, 'click', function() {
+        var _infowindow = new google.maps.InfoWindow({
+            content: '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
+        });
+        
+        _infowindow.open(Tabla.mapa, _marker_selector);
+    });
+
+    Tabla.marcadores.push(_marker_selector);   
 }
 
 Tabla.cargarMapa = function()
@@ -57,10 +65,10 @@ Tabla.cargarMapa = function()
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
-    var infowindow = new google.maps.InfoWindow();
+    // var infowindow = new google.maps.InfoWindow();
 
     Tabla.mapa = map;
-    Tabla.infowindow = infowindow;
+    // Tabla.infowindow = infowindow;
 }
 
 Tabla.filtrarMapa = function()

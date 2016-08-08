@@ -10,95 +10,10 @@ Highcharts.setOptions({
 	}
 });
 
-var Util = {
-    getFechaActual : null,
-    getFechaActualResta : null
-};
-
-/**
- * Obtiene la fecha actual
- * @return {String}
- */
-Util.getFechaActual = function()
-{
-    var today = new Date();
-    var dd = today.getDate();
-    var mm = today.getMonth() + 1; //January is 0!
-    var yyyy = today.getFullYear();
-    if (dd < 10) {
-        dd = '0' + dd;
-    }
-    if (mm < 10) {
-        mm = '0' + mm;
-    }
-    var today = yyyy + '-' + mm + '-' + dd;
-    return today;
-};
-
-Util.cargarFechaUltimoRegistro = function()
-{
-    var year = parseInt(jQuery('#mainContainer').data('year'));
-    var month = parseInt(jQuery('#mainContainer').data('month'));
-    var day = parseInt(jQuery('#mainContainer').data('day'));
-
-    var today = new Date(year, month - 1, day); //January is 0!
-
-    Util._fechaBase = today;
-};
-
-
-Util.getFechaUltimoRegistro = function()
-{
-    // var year = parseInt(jQuery('#mainContainer').data('year'));
-    // var month = parseInt(jQuery('#mainContainer').data('month'));
-    // var day = parseInt(jQuery('#mainContainer').data('day'));
-
-    var year = jQuery('#mainContainer').data('year');
-    var month = jQuery('#mainContainer').data('month');
-    var day = jQuery('#mainContainer').data('day');
-
-    //var today = new Date(year, month - 1, day); //January is 0!
-
-    var today = year + '-' + month + '-' + day;
-    return today;
-};
-
-/**
- * Obtiene la fecha actual menos la cantidad de dias
- * @param dias
- */
-Util.getFechaActualResta = function(dias)
-{
-    //var today = new Date();
-    var today = Util._fechaBase;
-    var minus = new Date(today.getTime() - (dias * 24 * 3600 * 1000));
-
-
-    var dd = minus.getDate();
-    var mm = minus.getMonth() + 1; //January is 0!
-    var yyyy = minus.getFullYear();
-    if (dd < 10) {
-        dd = '0' + dd;
-    }
-    if (mm < 10) {
-        mm = '0' + mm;
-    }
-    var minus = yyyy + '-' + mm + '-' + dd;
-    return minus;
-
-};
-
-
-var Loader = {
-    showLoader : null,
-    removeLoader : null,
-    addLoaderElement : null,
-    removeLoaderElement : null
-};
 
 // extender de HomeCharts para tener la implementacion de los metodos que se comparten
 var HighCharts = {
-    _loader : Loader,
+    // _loader : Loader,
     graficoLinea : null
 };
 
@@ -126,12 +41,15 @@ HighCharts.graficoLinea = function(elementoSelector, datos, titulos, titulo, lab
                     fontFamily: 'Verdana, sans-serif'
                 }
             }
+            // title: {
+            //     text: labelValor
+            // }
         },
-        // yAxis: {
-        //     title: {
-        //         text: 'Exchange rate'
-        //     }
-        // },
+        yAxis: {
+            title: {
+                text: labelValor
+            }
+        },
         legend: {
             enabled: false
         },
@@ -191,11 +109,11 @@ HighCharts.graficoLineaMultiple = function(elementoSelector, datos, titulos, tit
                 }
             }
         },
-        // yAxis: {
-        //     title: {
-        //         text: 'Exchange rate'
-        //     }
-        // },
+        yAxis: {
+            title: {
+                text: labelValor
+            }
+        },
         legend: {
             layout: 'vertical',
             align: 'right',
@@ -325,7 +243,7 @@ HighCharts.graficoPolarGrados = function(elementoSelector, datosX, datosY, titul
 };
 
 var EstacionGrafico = {
-    _loader : Loader,
+    // _loader : Loader,
     _graficos : HighCharts,
     _fechaInicio : null,
     _fechaFin : null,
@@ -341,38 +259,6 @@ var EstacionGrafico = {
 
 EstacionGrafico.inicializar = function()
 {
-    return;
-
-    // verificar si se esta cargando una pagina de estaciones
-    if (jQuery('#mainContainer').data('estacion') == undefined)
-        return;
-
-    Util.cargarFechaUltimoRegistro();
-    EstacionGrafico._fechaInicio = Util.getFechaActualResta(45);
-    EstacionGrafico._fechaFin =  Util.getFechaUltimoRegistro();
-    EstacionGrafico._fechaDiezDiasInicio = Util.getFechaActualResta(10);
-    EstacionGrafico._estacionId = jQuery('#mainContainer').data('estacion');
-
-    if (jQuery('.chart-evolucion-horaria').length)
-        EstacionGrafico.temperaturaHistorico('.chart-evolucion-horaria');
-
-    if (jQuery('.chart-humedad-promedio').length)
-        EstacionGrafico.humedadHistorico('.chart-humedad-promedio');
-
-    if (jQuery('.chart-daily-precipitation').length)
-        EstacionGrafico.precipitacionHistorico('.chart-daily-precipitation');
-
-    if (jQuery('.chart-accumulated-precipitation').length)
-        EstacionGrafico.precipitacionMensual('.chart-accumulated-precipitation');
-
-    if (jQuery('.chart-radiation').length)
-        EstacionGrafico.radiacionHistorico('.chart-radiation');
-
-    if (jQuery('.chart-pressure').length)
-        EstacionGrafico.presionHistorico('.chart-pressure');
-
-    if (jQuery('.chart-wind').length)
-        EstacionGrafico.vientoHistorico('.chart-wind');
 };
 
 EstacionGrafico.cargarDatosSincrono = function(url, desde, hasta)
@@ -416,34 +302,76 @@ EstacionGrafico.graficarVariable = function(elementoSelector, datos, variable)
     var serie = [];
     var titulos = [];
 
+    var tituloGrafico = 'Registros de variable en periodo';
+    var tituloEje = 'Valores';  
+
     // preparar los datos
     for (var i = 0; i < datos.length; i++)
     {
         var fila = {x: datos[i].fecha, name: datos[i].fecha};
 
         if (variable == "winddir")
+        {
             fila['y'] = datos[i].winddir;
+            tituloGrafico = 'Registros de direccion de viento';
+            tituloEje = "Valores en grados";
+        }
 
         if (variable == "windspeed")
+        {
             fila['y'] = datos[i].windspeed;
+            tituloGrafico = 'Registros de velocidad de viento';
+            tituloEje = "Valores en m\\s";
+        }
 
         if (variable == "presion")
+        {
             fila['y'] = datos[i].presion;
+            tituloGrafico = 'Registros de presion atmosferica';
+            tituloEje = "Valores en hectopascales";
+        }
 
         if (variable == "temperatura")
+        {
             fila['y'] = datos[i].temperatura;
+            tituloGrafico = 'Registros de temperatura';
+            tituloEje = "Valores en grados celcius";
+        }
+
+        if (variable == "radiation")
+        {
+            fila['y'] = datos[i].radiation;
+            tituloGrafico = 'Registros de radiacion';
+            tituloEje = "Valores";
+        }
+
+        if (variable == "winddir50")
+        {
+            fila['y'] = datos[i].winddir50;
+            tituloGrafico = 'Registros de direccion de viento a 50 metros';
+            tituloEje = "Valores en grados";
+        }
+
+        if (variable == "windspeed50")
+        {
+            fila['y'] = datos[i].windspeed50;
+            tituloGrafico = 'Registros de velocidad de viento a 50 metros';
+            tituloEje = "Valores en m\\s";
+        }
         
         // serie.push(fila);
         serie.push(fila['y']);
         titulos.push(datos[i].fecha);
     }
 
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, titulos, 'Registros de variable en periodo', 'Valores');
+    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, titulos, tituloGrafico, tituloEje);
 };
 
 EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nombreVariable)
 {
     var valores = [];
+    var tituloGrafico = 'Registros de variable en periodo';
+    var tituloEje = 'Valores';  
 
     for (key in datos['valores'])
     {
@@ -454,278 +382,73 @@ EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nomb
         {
             var variables = filas[i];
 
-            if (isEmpty(variables))
+            if (EstacionGrafico.isEmpty(variables))
             {
                 valoresAnio.push(-10);
                 continue;
             }
 
             if (nombreVariable == "winddir")
+            {
                 valoresAnio.push(variables['winddir']);
+                tituloGrafico = 'Registros de direccion de viento';
+                tituloEje = "Valores en grados";
+            }
 
             if (nombreVariable == "windspeed")
+            {
                 valoresAnio.push(variables['windspeed']);
+                tituloGrafico = 'Registros de velocidad de viento';
+                tituloEje = "Valores en m\\s";
+            }
 
             if (nombreVariable == "presion")
+            {
                 valoresAnio.push(variables['presion']);
+                tituloGrafico = 'Registros de presion atmosferica';
+                tituloEje = "Valores en hectopascales";
+            }
 
             if (nombreVariable == "temperatura")
+            {
                 valoresAnio.push(variables['temperatura']);
+                tituloGrafico = 'Registros de temperatura';
+                tituloEje = "Valores en grados celcius";
+            }
+
+            if (nombreVariable == "radiation")
+            {
+                valoresAnio.push(variables['radiation']);
+                tituloGrafico = 'Registros de radiacion';
+                tituloEje = "Valores";
+            }
+
+            if (nombreVariable == "winddir50")
+            {
+                valoresAnio.push(variables['winddir50']);
+                tituloGrafico = 'Registros de direccion de viento a 50 metros';
+                tituloEje = "Valores en grados";
+            }
+
+            if (nombreVariable == "windspeed50")
+            {
+                valoresAnio.push(variables['windspeed50']);
+                tituloGrafico = 'Registros de velocidad de viento a 50 metros';
+                tituloEje = "Valores en m\\s";
+            }
                 
         }
 
         valores.push({name : key, data : valoresAnio});
     }
 
-    EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, datos['columnas'], 'Registros de variable en periodo', 'Valores');
+    EstacionGrafico._graficos.graficoLineaMultiple(elementoSelector, valores, datos['columnas'], tituloGrafico, tituloEje);
 };
 
-function isEmpty( o ) {
+EstacionGrafico.isEmpty = function( o ) {
     for ( var p in o ) { 
         if ( o.hasOwnProperty( p ) ) { return false; }
     }
     return true;
-}
-
-EstacionGrafico.temperaturaHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/temperatura/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var serie = [];
-
-    // preparar los datos
-    for (var i = 0; i < datos.length; i++)
-    {
-        serie.push({x: datos[i].datetime * 1000, y: datos[i].outtemp, name: datos[i].datetime  * 1000});
-    }
-
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, 'Registros de Temperatura por dia', 'Temperatura');
-};
-
-EstacionGrafico.humedadHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/humedad/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var serie = [];
-
-    // preparar los datos
-    for (var i = 0; i < datos.length; i++)
-    {
-        serie.push({x: datos[i].datetime * 1000, y: datos[i].outhumidity, name: datos[i].datetime  * 1000});
-    }
-
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, 'Registros de Humedad por dia', 'Humedad');
-};
-
-EstacionGrafico.vientoHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/viento/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var serie = [];
-
-    // preparar los datos
-    for (var i = 0; i < datos.length; i++)
-    {
-        serie.push({x: datos[i].datetime, y: datos[i].windspeed, name: datos[i].datetime});
-    }
-
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, 'Registros de Velocidad del Viento por dia', 'Velocidad');
-};
-
-EstacionGrafico.vientoDireccionHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/viento/conteo_direccion/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    EstacionGrafico._graficos.graficoPolarGrados(elementoSelector, datos['direcciones'], datos['valores'], 'Lecturas de Direccion del Viento', 'Cantidad de Lecturas');
-};
-
-EstacionGrafico.precipitacionHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/precipitacion/acumulado_dia/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    EstacionGrafico._graficos.graficoBarra(elementoSelector, datos['dias'], datos['valores'], 'Precipitacion Acumulada por dia', 'Lluvia (mm)');
-};
-
-EstacionGrafico.precipitacionMensual = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/precipitacion/acumulado_mensual/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    EstacionGrafico._graficos.graficoBarra(elementoSelector, datos['meses'], datos['valores'], 'Precipitacion Mensual Acumulada', 'Lluvia (mm)');
-};
-
-EstacionGrafico.radiacionHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/radiacion/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var serie = [];
-
-    // preparar los datos
-    for (var i = 0; i < datos.length; i++)
-    {
-        serie.push({x: datos[i].datetime, y: datos[i].radiation, name: datos[i].datetime});
-    }
-
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, 'Registros de Radiacion por dia', 'Radiacion');
-};
-
-EstacionGrafico.presionHistorico = function(elementoSelector)
-{
-    var datos = EstacionGrafico.cargarDatosSincrono('/presion/historico/' + EstacionGrafico._estacionId, EstacionGrafico._fechaDiezDiasInicio, EstacionGrafico._fechaFin);
-
-    var serie = [];
-
-    // preparar los datos
-    for (var i = 0; i < datos.length; i++)
-    {
-        serie.push({x: datos[i].datetime, y: datos[i].pressure, name: datos[i].datetime});
-    }
-
-    EstacionGrafico._graficos.graficoLinea(elementoSelector, serie, 'Registros de Presion Atmosferica por dia', 'Presion');
-};
-
-var Dashboard = {
-    _idEstacion : null,
-    inicializar : null,
-    temperaturaTabListener : null,
-    vientoTabListener : null
-};
-
-Dashboard.inicializar = function()
-{
-    EstacionGrafico.inicializar();
-    Dashboard._idEstacion = 1;
-    Dashboard.temperaturaTabListener();
-
-    //EstacionGrafico._fechaFin = '2014-11-14';
-    //EstacionGrafico._fechaInicio = '2014-11-25';
-    //EstacionGrafico._fechaDiezDiasInicio = '2014-11-22';
-};
-
-Dashboard.temperaturaTabListener = function()
-{
-    jQuery("#btnGrafTemp").click(function(){
-        // es el valor antes de terminar la transicion por lo que todavia no se ve
-        if (jQuery('#collapse-temperature').is(':hidden'))
-        {
-            EstacionGrafico.temperaturaHistorico("#temp-tab1");
-        }
-    });
-
-    jQuery("#btnGrafVientoVel").click(function(){
-        // es el valor antes de terminar la transicion por lo que todavia no se ve
-        if (jQuery('#collapse-wind-speed').is(':hidden'))
-        {
-            EstacionGrafico.vientoHistorico("#wind-speed-tab1");
-        }
-    });
-
-    jQuery("#btnGrafVientoDir").click(function(){
-        // es el valor antes de terminar la transicion por lo que todavia no se ve
-        if (jQuery('#collapse-winddir').is(':hidden'))
-        {
-            EstacionGrafico.vientoDireccionHistorico("#winddir-tab1");
-        }
-    });
-
-    jQuery("#btnGrafPrecipitaciones").click(function(){
-        // es el valor antes de terminar la transicion por lo que todavia no se ve
-        if (jQuery('#collapse-rainfall').is(':hidden'))
-        {
-            EstacionGrafico.precipitacionHistorico("#rainfall-tab1");
-        }
-    });
-};
-
-Reporte1 = {
-    generarReporte : null
-};
-
-Reporte1.generarReporte = function()
-{
-    var estaciones = [];
-
-    jQuery('#select-estacion li a').each(function(){
-        if (!jQuery(this).hasClass('select-all') && jQuery(this).hasClass('selected'))
-            estaciones.push(jQuery(this).attr('id'));
-    });
-
-    var campos = [];
-
-    jQuery('#select-medicion li a').each(function(){
-        if (!jQuery(this).hasClass('select-all')  && jQuery(this).hasClass('selected'))
-            campos.push(jQuery(this).attr('id'));
-    });
-
-    var informe = jQuery('#select-informe li a.selected').attr('id');
-
-    var intervalo_desde = jQuery('#select-intervalo li a.selected').attr('data-desde');
-    var intervalo_hasta = jQuery('#select-intervalo li a.selected').attr('data-hasta');
-
-    var data = {'rep_estaciones' : estaciones.join(','), 'rep_atributos' : campos.join(','), 'rep_informe' : informe, 'rep_desde' : intervalo_desde, 'rep_hasta' : intervalo_hasta};
-
-    console.log(data);
-
-    jQuery.ajax({
-        url : '/reporte/generar',
-        type : "POST",
-        data : data,
-        async : true,
-        dataType : "json",
-        success : function (response)
-        {
-            //$('#tablent-report').removeClass('hidden');
-            jQuery('#tabla-report-container').html(response.data);
-        }
-    });
-
-}
-
-function pronos()
-{
-    var filas = jQuery('#climaContent').find('table tr');
-    var pronoFecha = jQuery('#climaContent').find('div.Estilo8').text();
-    var dia = jQuery(jQuery(filas.get(3)).find('td').get(0)).text();
-    var icono = jQuery(jQuery(filas.get(4)).find('td').get(0)).find('div').html();
-    var pronostico = jQuery(jQuery(filas.get(5)).find('td').get(0)).find('div span').html();
-    var temperaturas = jQuery(jQuery(filas.get(6)).find('td').get(0)).find('strong');
-    var minima = jQuery(temperaturas.get(0)).text();
-    var maxima = jQuery(temperaturas.get(1)).text();
-
-    icono = jQuery(icono).attr('src', 'http://www.meteorologia.gov.py/' + jQuery(icono).attr('src')).attr('title', pronostico);
-
-    jQuery('#pronosDate').html(pronoFecha);
-    jQuery('#cellDia1').html(dia);
-    jQuery('#cellIcono1').html(icono);
-    jQuery('#cellMinima1').html( minima);
-    jQuery('#cellMaxima1').html( maxima);
-
-    dia = jQuery(jQuery(filas.get(3)).find('td').get(2)).text();
-    icono = jQuery(jQuery(filas.get(4)).find('td').get(2)).find('div').html();
-    pronostico = jQuery(jQuery(filas.get(5)).find('td').get(2)).find('div span').html();
-    temperaturas = jQuery(jQuery(filas.get(6)).find('td').get(2)).find('strong');
-    minima = jQuery(temperaturas.get(0)).text();
-    maxima = jQuery(temperaturas.get(1)).text();
-
-    icono = jQuery(icono).attr('src', 'http://www.meteorologia.gov.py/' + jQuery(icono).attr('src')).attr('title', pronostico);
-
-    jQuery('#cellDia2').html(dia);
-    jQuery('#cellIcono2').html(icono);
-    jQuery('#cellMinima2').html(minima);
-    jQuery('#cellMaxima2').html(maxima);
-
-    dia = jQuery(jQuery(filas.get(3)).find('td').get(4)).text();
-    icono = jQuery(jQuery(filas.get(4)).find('td').get(4)).find('div').html();
-    pronostico = jQuery(jQuery(filas.get(5)).find('td').get(4)).find('div span').html();
-    temperaturas = jQuery(jQuery(filas.get(6)).find('td').get(4)).find('strong');
-    minima = jQuery(temperaturas.get(0)).text();
-    maxima = jQuery(temperaturas.get(1)).text();
-
-    icono = jQuery(icono).attr('src', 'http://www.meteorologia.gov.py/' + jQuery(icono).attr('src')).attr('title', pronostico);
-
-    jQuery('#cellDia3').html(dia);
-    jQuery('#cellIcono3').html(icono);
-    jQuery('#cellMinima3').html(minima);
-    jQuery('#cellMaxima3').html(maxima);
-    jQuery('#pronostico').show();
 }
 

@@ -20,6 +20,8 @@ from analisis_variables.models import Station, Record
 from django.db.models import Q
 from django.db import connection
 
+from django.core.cache import cache
+
 def home(request):
     return render(request, 'home.html')
 
@@ -117,8 +119,8 @@ def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
 	anualVel10 = _calculo_anual(desde, hasta, '"windSpeed"', station)
 	anualWindDir10 = _calculo_anual(desde, hasta, '"windDir"', station)
 
-	anualVel50 = _calculo_anual(desde, hasta, '"windSpeed"', station)
-	anualWindDir50 = _calculo_anual(desde, hasta, '"windDir"', station)
+	anualVel50 = _calculo_anual(desde, hasta, '"windSpeed50"', station)
+	anualWindDir50 = _calculo_anual(desde, hasta, '"windDir50"', station)
 
 	anualVel80 = _calculo_anual(desde, hasta, '"windSpeed"', station)
 	anualWindDir80 = _calculo_anual(desde, hasta, '"windDir"', station)

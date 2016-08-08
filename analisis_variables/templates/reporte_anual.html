@@ -198,86 +198,93 @@
             </div>
         </form>
 
-        <div class="row">
-            <div id="map-filtro" style="width: 100%; height: 400px"></div>
-        </div>
-
         <form id="formReporteAnual" class="form-horizontal" method="GET">
 
             <h3 id="helper-classes" class="">Estaciones</h3>  
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th>Departamento</th>
-                        <th>Datos desde/hasta</th>
-                        <th>Periodo de datos</th>
-                        <th>Elevacion (mts)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for estacion in estaciones %}
+            <div class="row" style="height: 400px; overflow: scroll; margin-bottom: 20px;">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <!-- <th scope="row">{{ estacion.pk }}</th> -->
-                            <th class="estacionRow" 
-                                data-id="{{ estacion.pk }}"
-                                data-nombre="{{ estacion.name }}"
-                                data-departamento="{{ estacion.departamento }}"
-                                data-datosperiodomes="{{ estacion.datosPeriodoMes }}"
-                                data-elevacion="{{ estacion.elevation }}"
-                                data-latitud="{{ estacion.lat }}"
-                                data-longitud="{{ estacion.lg }}"
-                            >
-                                <input type="checkbox" name="estacion[]" />
-                            </th>
-                            <td>{{ estacion.name }}</td>
-                            <td>{{ estacion.departamentoNombre }}</td>
-                            <td>{{ estacion.datosDesde }}</td>
-                            <td>{{ estacion.datosPeriodo }}</td>
-                            <td>{{ estacion.elevation }}</td>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Propietario</th>
+                            <th>Departamento</th>
+                            <th>Datos desde/hasta</th>
+                            <th>Periodo de datos</th>
+                            <th>Elevacion (mts)</th>
                         </tr>
-                    {% endfor %} 
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for estacion in estaciones %}
+                            <tr>
+                                <!-- <th scope="row">{{ estacion.pk }}</th> -->
+                                <th class="estacionRow" 
+                                    data-id="{{ estacion.pk }}"
+                                    data-nombre="{{ estacion.name }}"
+                                    data-departamento="{{ estacion.departamento }}"
+                                    data-datosperiodomes="{{ estacion.datosPeriodoMes }}"
+                                    data-elevacion="{{ estacion.elevation }}"
+                                    data-latitud="{{ estacion.lat }}"
+                                    data-longitud="{{ estacion.lg }}"
+                                >
+                                    <input type="checkbox" name="estacion[]" />
+                                </th>
+                                <td>{{ estacion.nombreCompleto }}</td>
+                                <td>{{ estacion.propietarioNombre }}</td>
+                                <td>{{ estacion.departamentoNombre }}</td>
+                                <td>{{ estacion.datosDesde }}</td>
+                                <td>{{ estacion.datosPeriodoMes|floatformat:0 }} (meses)</td>
+                                <td>{{ estacion.elevation|floatformat:0 }}</td>
+                            </tr>
+                        {% endfor %} 
+                    </tbody>
+                </table>
+            </div>
 
-          <div class="form-group">
-            <label class="col-sm-2 control-label">Conjunto de Datos</label>
-            <div class="col-sm-10">
-                <select id="conjunto" name="conjunto" class="form-control">
-                    <option value="porAnioTipo">Por anho tipo</option>
-                    <option value="porFecha">Por fechas</option>
-                </select>
+            <div class="row">
+                <div id="map-filtro" style="width: 100%; height: 400px"></div>
             </div>
-          </div>
-          <div class="form-group" id="fecha_desde_div" style="display: none;">
-            <label for="inputEmail3" class="col-sm-2 control-label">Desde</label>
-            <div class="col-sm-10">
-              <input type="text" class="form-control datepicker" id="fecha_desde" name="fecha_desde" placeholder="Fecha Desde">
+
+
+            <div class="row">
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label">Conjunto de Datos</label>
+                    <div class="col-sm-10">
+                        <select id="conjunto" name="conjunto" class="form-control">
+                            <option value="porAnioTipo">Por a&ntilde;o tipo</option>
+                            <option value="porFecha">Por fechas</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="form-group" id="fecha_desde_div" style="display: none;">
+                    <label for="inputEmail3" class="col-sm-2 control-label">Desde</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control datepicker" id="fecha_desde" name="fecha_desde" placeholder="Fecha Desde">
+                    </div>
+                  </div>
+                  <div class="form-group" id="fecha_hasta_div" style="display: none;">
+                    <label for="inputPassword3" class="col-sm-2 control-label">Hasta</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control datepicker" id="fecha_hasta" name="fecha_hasta" placeholder="Fecha Hasta">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="inputPassword3" class="col-sm-2 control-label">Formato de Salida</label>
+                    <div class="col-sm-10">
+                        <select id="formato" name="formato" class="form-control">
+                            <option value="tabla">Tabla</option>
+                            <option value="csv">CSV</option>
+                        </select>
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="submit" class="btn btn-success">Generar</button>
+                    </div>
+                  </div>
             </div>
-          </div>
-          <div class="form-group" id="fecha_hasta_div" style="display: none;">
-            <label for="inputPassword3" class="col-sm-2 control-label">Hasta</label>
-            <div class="col-sm-10">
-              <input type="text" class="form-control datepicker" id="fecha_hasta" name="fecha_hasta" placeholder="Fecha Hasta">
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="inputPassword3" class="col-sm-2 control-label">Formato de Salida</label>
-            <div class="col-sm-10">
-                <select id="formato" name="formato" class="form-control">
-                    <option value="tabla">Tabla</option>
-                    <option value="csv">CSV</option>
-                </select>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-              <button type="submit" class="btn btn-success">Generar</button>
-            </div>
-          </div>
         </form>
 
     </div> <!-- /container -->

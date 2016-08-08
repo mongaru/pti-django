@@ -5,7 +5,7 @@ jQuery(document).ready(function($){
 Inicio = {
 	inicializar : null,
 	mapa : null,
-	infowindow : null
+	// infowindow : null
 }
 
 Inicio.inicializar = function()
@@ -27,27 +27,37 @@ Inicio.cargarPuntos = function()
             	var estacion = estaciones[i];
 
             	var latLng = new google.maps.LatLng(estacion.lat, estacion.lg);
+                var nombre = estacion.name;
+                var url = estacion.detailsUrl;
 
-        	    _marker_selector = new google.maps.Marker({
-			        position: latLng,
-			        title: estacion.name,
-			        map: Inicio.mapa,
-			        // draggable: true,
-			        infoNombre : estacion.name,
-			        infoLink : estacion.detailsUrl
-			    });
-
-			    _marker_selector.addListener('click', function() {
-			    	// var contenido = '<div id="content"><h1 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h1><p>'+_marker_selector.infoLink+'</p></div>'
-			    	var contenido = '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
-			    	Inicio.infowindow.setContent(contenido);
-            		Inicio.infowindow.open(Inicio.mapa, _marker_selector);
-			    });
-
+        	    Inicio.crearMarker(latLng, nombre, url);
             };
         }
     });
 }
+
+Inicio.crearMarker = function(latLng, nombre, url)
+{
+    var _marker_selector = new google.maps.Marker({
+        position: latLng,
+        title: nombre,
+        map: Inicio.mapa,
+        // draggable: true,
+        infoNombre : nombre,
+        // infoCodigo : id,
+        infoLink : url
+        // icon : '/static/image/icon-orange.png'
+    });
+
+    google.maps.event.addListener(_marker_selector, 'click', function() {
+        var _infowindow = new google.maps.InfoWindow({
+            content: '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
+        });
+        
+        _infowindow.open(Tabla.mapa, _marker_selector);
+    });
+}
+
 
 Inicio.cargarMapa = function()
 {
@@ -63,10 +73,10 @@ Inicio.cargarMapa = function()
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
-    var infowindow = new google.maps.InfoWindow();
+    // var infowindow = new google.maps.InfoWindow();
 
     Inicio.mapa = map;
-    Inicio.infowindow = infowindow;
+    // Inicio.infowindow = infowindow;
 
     // _marker_selector = new google.maps.Marker({
     //     position: latLng,

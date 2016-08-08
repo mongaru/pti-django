@@ -189,7 +189,7 @@ def _generar_reporte_periodo_estacion(desde, hasta, id_estacion, periodo):
 	if (periodo == 'mes'):
 		mascaraPeriodo = 'YYYY-MM'
 
-	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed"  from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s group by fechaIndice order by fechaIndice asc'
+	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed", avg(a."radiation") as "radiation", avg(a."windSpeed50") as "windspeed50", avg(a."windDir50") as "winddir50"  from analisis_variables_record as a where a."dateTime" > %s and a."dateTime" < %s and a.station_id = %s group by fechaIndice order by fechaIndice asc'
 	cursor = connection.cursor()
 	cursor.execute(query, [fecha_desde, fecha_hasta, id_estacion])
 	# rows = _fields_to_dict(cursor)
@@ -208,7 +208,7 @@ def _generar_reporte_anio_tipo(desde, hasta, id_estacion, periodo):
 	if (periodo == 'mes'):
 		mascaraPeriodo = 'MM'
 
-	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed"  from analisis_variables_record as a where a.station_id = %s group by fechaIndice order by fechaIndice asc'
+	query = 'select to_char(a."dateTime", \''+mascaraPeriodo+'\') as fechaIndice, avg(a.barometer) as "presion", avg(a."outTemp") as "temperatura", avg(a."windDir") as "winddir", avg(a."windSpeed") as "windspeed", avg(a."radiation") as "radiation", avg(a."windSpeed50") as "windspeed50", avg(a."windDir50") as "winddir50"  from analisis_variables_record as a where a.station_id = %s group by fechaIndice order by fechaIndice asc'
 	cursor = connection.cursor()
 	cursor.execute(query, [id_estacion])
 	# rows = _fields_to_dict(cursor)

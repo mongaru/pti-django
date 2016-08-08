@@ -53,35 +53,33 @@ class Command(BaseCommand):
             if (estacion_id != None and estacion.pk != int(estacion_id)):
                 continue
 
+            parser = ParserDinac(estacion)
+            registrosConErrores = parser.runParser()
+            
             # if (estacion.type.mark == 'Campbell'):
             #     parser = ParserUno(estacion)
             #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
             #     registrosConErrores = parser.runParser()
 
-            if (estacion.type.mark == 'MIS'):
-                parser = ParserMIS(estacion)
-                # ejecutar el parser y obtener el listado de registros con errores para el reporte
-                registrosConErrores = parser.runParser()
+            # if (estacion.type.mark == 'MIS'):
+            #     parser = ParserMIS(estacion)
+            #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
+            #     registrosConErrores = parser.runParser()
 
-            if (estacion.type.mark == 'ARC'):
-                parser = ParserARC(estacion)
-                # ejecutar el parser y obtener el listado de registros con errores para el reporte
-                registrosConErrores = parser.runParser()
+            # if (estacion.type.mark == 'ARC'):
+            #     parser = ParserARC(estacion)
+            #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
+            #     registrosConErrores = parser.runParser()
 
-            if (estacion.type.mark == 'Tech'):
-                parser = ParserTech(estacion)
-                # ejecutar el parser y obtener el listado de registros con errores para el reporte
-                registrosConErrores = parser.runParser()
+            # if (estacion.type.mark == 'Tech'):
+            #     parser = ParserTech(estacion)
+            #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
+            #     registrosConErrores = parser.runParser()
 
-            if (estacion.type.mark == 'SutronCSV'):
-                parser = ParserSutronCSV(estacion)
-                # ejecutar el parser y obtener el listado de registros con errores para el reporte
-                registrosConErrores = parser.runParser()
-
-            if (estacion.type.mark == 'DINAC_API'):
-                parser = ParserDinac(estacion)
-                # ejecutar el parser y obtener el listado de registros con errores para el reporte
-                registrosConErrores = parser.runParser()
+            # if (estacion.type.mark == 'SutronCSV'):
+            #     parser = ParserSutronCSV(estacion)
+            #     # ejecutar el parser y obtener el listado de registros con errores para el reporte
+            #     registrosConErrores = parser.runParser()
 
             # if (estacion.type.mark == 'Rainwise'):
             #     parser = ParserRainwise(estacion)
