@@ -49,12 +49,16 @@ Inicio.crearMarker = function(latLng, nombre, url)
         // icon : '/static/image/icon-orange.png'
     });
 
-    google.maps.event.addListener(_marker_selector, 'click', function() {
-        var _infowindow = new google.maps.InfoWindow({
-            content: '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
-        });
-        
+    var _infowindow = new google.maps.InfoWindow({
+        content: '<div id="content"><h4 id="firstHeading" class="firstHeading">'+_marker_selector.infoNombre+'</h4></div>'
+    });
+
+    google.maps.event.addListener(_marker_selector, 'mouseover', function() {
         _infowindow.open(Tabla.mapa, _marker_selector);
+    });
+
+    google.maps.event.addListener(_marker_selector, 'mouseout', function() {
+        _infowindow.close(Tabla.mapa, _marker_selector);
     });
 }
 
