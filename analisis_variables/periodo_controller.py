@@ -23,6 +23,9 @@ from analisis_variables.models import Station, Record
 from django.db.models import Q
 from django.db import connection
 
+import StringIO
+import xlsxwriter
+
 def reporte_periodo(request):
 
     estaciones = Station.objects.all()
@@ -51,6 +54,8 @@ def reporte_periodo_generacion(request):
 	hasta = fechaHastaDefault.strftime("%Y-%m-%d") if hasta == '' else hasta
 	hasta = datetime.strptime(hasta, '%Y-%m-%d')
 	hasta = hasta.replace(hour=23, minute=59)
+
+	station = Station.objects.get(pk=id_estacion)
 
 	titulos = None
 	valores = []
@@ -81,6 +86,34 @@ def reporte_periodo_generacion(request):
 	    for fila in valoresEstacion['valores']:
 	    	writer.writerow(fila)
 
+	    return response
+
+	if (formato == 'xlsx'):
+	    output = StringIO.StringIO()
+	    workbook = xlsxwriter.Workbook(output)
+	 
+	    worksheet_s = workbook.add_worksheet("Datos")
+
+	    count = 0
+	    for titulo in valoresEstacion['titulos']:
+	    	worksheet_s.write(0, count, titulo)
+	    	count = count + 1
+
+	    countFila = 1
+	    for fila in valoresEstacion['valores']:
+	    	count = 0
+	    	for valor in fila:
+	    		worksheet_s.write(countFila, count, valor)
+	    		count = count + 1
+
+	    	countFila = countFila + 1
+	    
+	    workbook.close()
+	    xlsx_data = output.getvalue()
+
+	    response = HttpResponse(content_type='application/vnd.ms-excel')
+	    response['Content-Disposition'] = 'attachment; filename=datos_anuales_'+str(station.nombreCompleto())+'.xlsx'
+	    response.write(xlsx_data)
 	    return response
 
 	if (formato == 'grafico'):
