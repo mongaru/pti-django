@@ -209,8 +209,8 @@ class Station(models.Model):
 			return '0'
 
 class StationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'departamento', 'path_db', 'lat', 'lg')
-    list_filter = ('departamento', 'path_db')
+    list_display = ('id', 'name', 'departamento', 'dinac_numero', 'type', 'fabricante', 'path_db', 'lat', 'lg')
+    list_filter = ('departamento', 'propietario', 'type', 'fabricante')
 
 
 class Record(models.Model):
