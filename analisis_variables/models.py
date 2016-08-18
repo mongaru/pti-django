@@ -48,10 +48,10 @@ class Station(models.Model):
 	type = models.ForeignKey(TypeStation)
 	obs = models.CharField(max_length=255, null=True)
 
-	fabricante = models.IntegerField(choices=FABRICANTES, default=0, null=True)
-	propietario = models.IntegerField(choices=PROPIETARIOS, default=0, null=True)
-	dinac_numero = models.CharField(max_length=255, null=True)
-	dinac_id = models.IntegerField(default=0, null=True)
+	fabricante = models.IntegerField(choices=FABRICANTES, null=True, blank=True)
+	propietario = models.IntegerField(choices=PROPIETARIOS, null=True, blank=True)
+	dinac_numero = models.CharField(max_length=255, null=True, blank=True)
+	dinac_id = models.IntegerField(default=0, null=True, blank=True)
 
 	def __unicode__(self):
 	    return self.name
