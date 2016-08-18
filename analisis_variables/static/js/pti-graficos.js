@@ -286,11 +286,14 @@ EstacionGrafico.graficoPorEstacion = function(url, tipoGrafico, variable)
         type : "GET",
         dataType : "json",
         success : function (response) {
+            
             if (tipoGrafico == 'grafico')
                 EstacionGrafico.graficarVariable('.chart-panel', response.data, variable);
 
             if (tipoGrafico == 'graficoPorAnio')
                 EstacionGrafico.graficarVariablePorAnio('.chart-panel', response.data, variable);
+
+            $('.form-loader').css("display", "none");
         }
     });
 }

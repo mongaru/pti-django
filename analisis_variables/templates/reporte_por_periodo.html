@@ -55,8 +55,12 @@
 
                 var url = '/reporte/periodo/tabla?desde='+desde+'&hasta='+hasta+'&estacion='+estaciones+'&formato='+formato+'&periodo='+periodo+'&conjunto='+conjunto;
 
+                $('.form-loader').css("display","inline-block");
+
                 if (formato == 'grafico' ||formato == 'graficoPorAnio')
                 {
+                    $('.chart-panel').empty();
+
                     // cargar datos y generar grafico
                     EstacionGrafico.graficoPorEstacion(url, formato, variable);
                 }
@@ -181,7 +185,12 @@
           
           <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
-              <button type="submit" class="btn btn-default">Generar</button>
+              <button type="submit" class="btn btn-success" style="display: inline-block;">Generar</button>
+                <div id="" class="spinner form-loader" style="display: none;">
+                  <div class="double-bounce1"></div>
+                  <div class="double-bounce2"></div>
+                </div>
+                <span class="form-loader" style="display: none; margin-left: 45px;">Trabajando...</span>
             </div>
           </div>
         </form>

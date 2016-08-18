@@ -28,7 +28,7 @@ import xlsxwriter
 
 def reporte_periodo(request):
 
-    estaciones = Station.objects.all()
+    estaciones = Station.objects.all().order_by('name')
     
     dataToRender = {
         'estaciones' : estaciones
@@ -99,25 +99,25 @@ def reporte_periodo_generacion(request):
 	    	worksheet_s.write(0, count, titulo)
 	    	count = count + 1
 
-	    countFila = 1
-	    for fila in valoresEstacion['valores']:
-	    	count = 0
-	    	for valor in fila:
-	    		if (valor == None):
-	    			worksheet_s.write(countFila, count, '-')
-	    		else:
-	    			worksheet_s.write(countFila, count, valor)	
-	    		count = count + 1
+		countFila = 1
+		for fila in valoresEstacion['valores']:
+		    count = 0
+		    for valor in fila:
+		        if (isinstance(valor, decimal.Decimal) and math.isnan(float(valor))):
+		            worksheet_s.write(countFila, count, '-')
+		        else:
+		            worksheet_s.write(countFila, count, valor)
+		        count = count + 1
 
-	    	countFila = countFila + 1
-	    
-	    workbook.close()
-	    xlsx_data = output.getvalue()
+		    countFila = countFila + 1
 
-	    response = HttpResponse(content_type='application/vnd.ms-excel')
-	    response['Content-Disposition'] = 'attachment; filename=datos_anuales_'+str(station.nombreCompleto())+'.xlsx'
-	    response.write(xlsx_data)
-	    return response
+		workbook.close()
+		xlsx_data = output.getvalue()
+
+		response = HttpResponse(content_type='application/vnd.ms-excel')
+		response['Content-Disposition'] = 'attachment; filename=datos_anuales_'+str(station.nombreCompleto())+'.xlsx'
+		response.write(xlsx_data)
+		return response
 
 	if (formato == 'grafico'):
 	    result = []

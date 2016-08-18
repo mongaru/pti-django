@@ -3,6 +3,7 @@ import pprint
 import calendar
 import math
 import csv
+import decimal
 from datetime import datetime, timedelta
 
 from django.db.models import Min, Max, Sum
@@ -22,12 +23,15 @@ from django.db import connection
 
 from django.core.cache import cache
 
+import StringIO
+import xlsxwriter
+
 def home(request):
     return render(request, 'home.html')
 
 def estacion_listado_inicio(request):
 
-	estaciones = list(Station.objects.all())
+	estaciones = list(Station.objects.all().order_by('name'))
 
 	result = []
 
@@ -42,7 +46,7 @@ def estacion_listado_inicio(request):
 
 def reporte_anual(request):
 
-    estaciones = Station.objects.all()
+    estaciones = Station.objects.all().order_by('name')
     departamentos = Station.DEPTOS
 
     dataToRender = {
@@ -97,7 +101,7 @@ def reporte_anual_generacion(request):
 	if (formato == 'csv'):
 		# Create the HttpResponse object with the appropriate CSV header.
 	    response = HttpResponse(content_type='text/csv')
-	    response['Content-Disposition'] = 'attachment; filename="reporte_anual.csv"'
+	    response['Content-Disposition'] = 'attachment; filename="datos_para_mapeo.csv"'
 
 	    writer = csv.writer(response)
 
@@ -107,6 +111,41 @@ def reporte_anual_generacion(request):
 	    	writer.writerow(fila)
 
 	    return response
+
+	if (formato == 'xlsx'):
+		output = StringIO.StringIO()
+		workbook = xlsxwriter.Workbook(output)
+
+		pprint.pprint('xlsx')
+		pprint.pprint(titulos)
+
+		worksheet_s = workbook.add_worksheet("Datos")
+
+		count = 0
+		for titulo in titulos:
+			pprint.pprint(titulo)
+			worksheet_s.write(0, count, titulo)
+			count = count + 1
+
+		countFila = 1
+		for fila in valores:
+			count = 0
+			for valor in fila:
+				if (isinstance(valor, decimal.Decimal) and math.isnan(float(valor))):
+					worksheet_s.write(countFila, count, '-')
+				else:
+					worksheet_s.write(countFila, count, valor)
+				count = count + 1
+
+			countFila = countFila + 1
+
+		workbook.close()
+		xlsx_data = output.getvalue()
+
+		response = HttpResponse(content_type='application/vnd.ms-excel')
+		response['Content-Disposition'] = 'attachment; filename=datos_para_mapeo.xlsx'
+		response.write(xlsx_data)
+		return response
 
 def _generar_reporte_anual_estacion(desde, hasta, id_estacion):
 

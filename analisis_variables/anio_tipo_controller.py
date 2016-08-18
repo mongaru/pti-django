@@ -21,6 +21,8 @@ from analisis_variables.models import Station, Record
 from django.db.models import Q
 from django.db import connection
 
+import StringIO
+import xlsxwriter
 
 def reporte_anual_generacion(request):
     
@@ -66,7 +68,7 @@ def reporte_anual_generacion(request):
 	if (formato == 'csv'):
 		# Create the HttpResponse object with the appropriate CSV header.
 	    response = HttpResponse(content_type='text/csv')
-	    response['Content-Disposition'] = 'attachment; filename="reporte_anual.csv"'
+	    response['Content-Disposition'] = 'attachment; filename="datos_para_mapeo.csv"'
 
 	    writer = csv.writer(response)
 
@@ -76,6 +78,41 @@ def reporte_anual_generacion(request):
 	    	writer.writerow(fila)
 
 	    return response
+
+	if (formato == 'xlsx'):
+		output = StringIO.StringIO()
+		workbook = xlsxwriter.Workbook(output)
+
+		pprint.pprint('xlsx')
+		pprint.pprint(titulos)
+
+		worksheet_s = workbook.add_worksheet("Datos")
+
+		count = 0
+		for titulo in titulos:
+			pprint.pprint(titulo)
+			worksheet_s.write(0, count, titulo)
+			count = count + 1
+
+		countFila = 1
+		for fila in valores:
+			count = 0
+			for valor in fila:
+				if (isinstance(valor, decimal.Decimal) and math.isnan(float(valor))):
+					worksheet_s.write(countFila, count, '-')
+				else:
+					worksheet_s.write(countFila, count, valor)
+				count = count + 1
+
+			countFila = countFila + 1
+
+		workbook.close()
+		xlsx_data = output.getvalue()
+
+		response = HttpResponse(content_type='application/vnd.ms-excel')
+		response['Content-Disposition'] = 'attachment; filename=datos_para_mapeo.xlsx'
+		response.write(xlsx_data)
+		return response
 
     # return render_to_response('home.html', dict(respuestaData.items() + _getUserData(request).items()))
 
@@ -227,7 +264,7 @@ def _calculo_mensual(fecha_inicio, fecha_fin, variable, station):
         cursor.execute(query, [station.pk])
         rows = _fields_to_dict(cursor)
 
-        pprint.pprint(rows)
+        # pprint.pprint(rows)
         resultadosMes.append({'month' : _nombre_mes(int(mes)), 'year' : fecha_desde.year, 'avg' : rows[0]})
 
 
@@ -272,7 +309,7 @@ def _calculo_por_estacion_anio(fecha_inicio, fecha_fin, variable, station):
         cursor.execute(query, [station.pk, estacion['inicio'], estacion['fin']])
         rows = _fields_to_dict(cursor)
 
-        pprint.pprint(rows)
+        # pprint.pprint(rows)
 
         # resultadosMes.append({'month' : estacion['inicio'].month, 'year' : estacion['inicio'].year, 'avg' : rows[0], 'estacion' : estacion['estacion']})
         resultadosMes.append({'avg' : rows[0], 'estacion' : estacion['estacion']})
@@ -301,11 +338,11 @@ def _estacionDelAnio(fecha):
     # obtenes el valor de mes/dia de la fecha indicada
     fechaEstacion = int(fecha.strftime("%m") + fecha.strftime("%d"))
 
-    pprint.pprint(fechaEstacion)
+    # pprint.pprint(fechaEstacion)
 
     for estacion in estaciones:
         if (fechaEstacion >= estacion['inicio'] and fechaEstacion <= estacion["fin"]):
-            pprint.pprint(estacion['estacion'])
+            # pprint.pprint(estacion['estacion'])
             return estacion['estacion']
 
     return 'sin estacion'
@@ -337,8 +374,8 @@ def _fechasParaEstaciones(fecha_inicio, fecha_fin):
         # incrementamos el dia y calculamos de nuevo la estacion
         fecha_inicio = fecha_inicio + timedelta(days=1)
         estacionNombre = _estacionDelAnio(fecha_inicio)
-        pprint.pprint(fecha_inicio)
-        pprint.pprint(estacionNombre)
+        # pprint.pprint(fecha_inicio)
+        # pprint.pprint(estacionNombre)
 
     # indicamos la fecha de fin al ultimo registro
     estacionesDisponibles[len(estacionesDisponibles) - 1]['fin'] = fecha_fin
