@@ -103,7 +103,10 @@ def reporte_periodo_generacion(request):
 	    for fila in valoresEstacion['valores']:
 	    	count = 0
 	    	for valor in fila:
-	    		worksheet_s.write(countFila, count, valor)
+	    		if (valor == None):
+	    			worksheet_s.write(countFila, count, '-')
+	    		else:
+	    			worksheet_s.write(countFila, count, valor)	
 	    		count = count + 1
 
 	    	countFila = countFila + 1
