@@ -8,6 +8,7 @@ from _parser_arc import ParserARC
 from _parser_tech import ParserTech
 from _parser_sutron_csv import ParserSutronCSV
 from _parser_dinac import ParserDinac
+from _parser_puntocoma_csv import ParserPuntocomaCSV
 # from parser_rainwise import ParserRainwise
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
@@ -80,6 +81,11 @@ class Command(BaseCommand):
 
             if (estacion.type.mark == 'DINAC_API'):
                 parser = ParserDinac(estacion)
+                # ejecutar el parser y obtener el listado de registros con errores para el reporte
+                registrosConErrores = parser.runParser()
+
+            if (estacion.type.mark == 'CSV_PUNTOCOMA'):
+                parser = ParserPuntocomaCSV(estacion)
                 # ejecutar el parser y obtener el listado de registros con errores para el reporte
                 registrosConErrores = parser.runParser()
 
