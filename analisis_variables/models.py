@@ -27,13 +27,13 @@ class TypeStationAdmin(admin.ModelAdmin):
 
 class Station(models.Model):
     
-	DEPTOS = ((1, 'Concepcion'), (2, 'San Pedro'), (3, 'Coridillera'), (4, 'Guaira'), (5, 'Caaguazu'), (6, 'Caazapa'),
+	DEPTOS = ((1, 'Concepcion'), (2, 'San Pedro'), (3, 'Cordillera'), (4, 'Guaira'), (5, 'Caaguazu'), (6, 'Caazapa'),
 	          (7, 'Itapua'),
 	          (8, 'Misiones'), (9, 'Paraguari'), (10, 'Alto Parana'), (11, 'Central'), (12, 'Neembucu'),
 	          (13, 'Amambay'), (14, 'Canindeyu'), (15, 'Presidente Hayes'), (16, 'Alto Paraguay'), (17, 'Boqueron'),)
 
 
-	FABRICANTES = ((1, 'Davis'), (2, 'Sutron'), (3, 'OTT'),)
+	FABRICANTES = ((1, 'Davis'), (2, 'Sutron'), (3, 'OTT'), (4, 'Campbell'),)
 	PROPIETARIOS = ((1, 'DINAC'), (2, 'PTI'), (3, 'FECOPROD'),)
 
 	name = models.CharField(max_length=255)
@@ -52,6 +52,9 @@ class Station(models.Model):
 	propietario = models.IntegerField(choices=PROPIETARIOS, null=True, blank=True)
 	dinac_numero = models.CharField(max_length=255, null=True, blank=True)
 	dinac_id = models.IntegerField(default=0, null=True, blank=True)
+
+	pti_id = models.CharField(max_length=255, null=True, blank=True)
+	pti_nombre = models.CharField(max_length=255, null=True, blank=True)
 
 	def __unicode__(self):
 	    return self.name
@@ -81,17 +84,12 @@ class Station(models.Model):
 	    return '%.0f' % math.ceil(degrees) + "º " + '%.0f' % math.ceil(minutes) + "’ " + '%.0f' % math.ceil(seconds) + "’’ "
 
 	def departamentoNombre(self):
-		# http://stackoverflow.com/questions/4320679/django-display-choice-value
 		return self.get_departamento_display()
 
-		# otra solucion
-		# for dpto in self.DEPTOS:
-		# 	if (dpto[0] == self.departamento)
-		# 		return dpto[1]
-
-		# return ''
-
 	def nombreCompleto(self):
+
+		if (self.pti_id != None and self.pti_id != ''):
+			return self.pti_id + ' - ' + self.pti_nombre
 
 		if (self.dinac_numero == None or self.dinac_numero == ''):
 			return self.name
@@ -99,7 +97,6 @@ class Station(models.Model):
 			return self.dinac_numero + ' - ' + self.name
 
 	def propietarioNombre(self):
-		# http://stackoverflow.com/questions/4320679/django-display-choice-value
 		return self.get_propietario_display()
 
 	def datosPeriodo(self):
@@ -107,10 +104,8 @@ class Station(models.Model):
 		datosDelPeriodo = cache.get('datosDelPeriodo-'+str(self.pk))
 
 		if (datosDelPeriodo != None):
-			pprint.pprint('desde el cache')
 			return datosDelPeriodo
 		else:
-			pprint.pprint('desde el query')
 			# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
 			try:
 			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
@@ -158,10 +153,8 @@ class Station(models.Model):
 		datosDelPeriodo = cache.get('datosDelPeriodoDesde-'+str(self.pk))
 
 		if (datosDelPeriodo != None):
-			pprint.pprint('desde el cache desde')
 			return datosDelPeriodo
 		else:
-			pprint.pprint('desde el query desde')
 			# obtener el ultimo registro de la bd que es el dato mas actualizado de modo a insertar solo los nuevos
 			try:
 			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
@@ -185,10 +178,8 @@ class Station(models.Model):
 		datosDelPeriodo = cache.get('datosDelPeriodoMes-'+str(self.pk))
 
 		if (datosDelPeriodo != None):
-			pprint.pprint('desde el cache mes')
 			return datosDelPeriodo
 		else:
-			pprint.pprint('desde el query mes')
 			try:
 			    ultimoRegistro = Record.objects.filter(station=self).latest('datetime')
 			except Record.DoesNotExist:
@@ -208,8 +199,13 @@ class Station(models.Model):
 
 			return '0'
 
+	def getSensores(self):
+		sensores = Sensor.objects.filter(station__pk=self.pk)
+
+		return sensores
+
 class StationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'departamento', 'dinac_numero', 'propietario', 'fabricante', 'type', 'path_db', 'lat', 'lg')
+    list_display = ('id', 'name', 'departamento', 'pti_id', 'pti_nombre', 'dinac_numero', 'propietario', 'fabricante', 'type', 'path_db', 'lat', 'lg')
     list_filter = ('departamento', 'propietario', 'fabricante', 'type')
 
 
@@ -346,8 +342,6 @@ class Record(models.Model):
 	    else:
 	        direction = "N"
 	    return "%s" % direction
-	#    class Meta:
-	#    	ordering = ["-datetime"]
 
 
 class RecordAdmin(admin.ModelAdmin):
@@ -357,7 +351,6 @@ class RecordAdmin(admin.ModelAdmin):
         'station',
         ('datetime', DateRangeFilter),
     )
-    #actions = [export_to_csv]
     list_per_page = 40
 
 class Control(models.Model):
@@ -373,5 +366,19 @@ class Control(models.Model):
 class ControlAdmin(admin.ModelAdmin):
     list_display = ('id','variable','control_var','valor')
     list_filter = ('variable','control_var')
+
+class Sensor(models.Model):
+	VARIABLES = ((1, 'Viento'), (2, 'Radiacion'), (3, 'Temperatura'))
+
+	variable = models.IntegerField(choices=VARIABLES, default=0, db_column='variable')
+	station = models.ForeignKey(Station, on_delete=models.CASCADE)
+
+	def variableNombre(self):
+		return self.get_variable_display()
+
+
+class SensorAdmin(admin.ModelAdmin):
+	list_display = ('id','variable','station')
+	list_filter = ('variable',)
 
 

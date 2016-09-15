@@ -76,7 +76,7 @@
                 var dpto = $('#filtro-dpto').val();
                 var operador = $('#filtro-meses-operador').val();
                 var meses = $('#filtro-meses').val();
-                var elevacion = $('#filtro-elevacion').val();
+                // var elevacion = $('#filtro-elevacion').val();
 
                 $('th input[type="checkbox"]').each(function(){
                     $(this).prop("checked", false);
@@ -141,19 +141,20 @@
                         }
                     }
 
-                    if (elevacion != '' && oculto == false)
-                    {
-                        if ($(this).data("elevacion") != elevacion)
-                        {
-                            $(this).parent().hide();
-                        }
-                        else
-                        {
-                            $(this).parent().show();
-                        }
-                    }
+                    // if (elevacion != '' && oculto == false)
+                    // {
+                    //     if ($(this).data("elevacion") != elevacion)
+                    //     {
+                    //         $(this).parent().hide();
+                    //     }
+                    //     else
+                    //     {
+                    //         $(this).parent().show();
+                    //     }
+                    // }
 
-                    if (elevacion == '' && meses == '' && dpto == '')
+                    // if (elevacion == '' && meses == '' && dpto == '')
+                    if (meses == '' && dpto == '')
                     {
                         $(this).parent().show();
                     }
@@ -191,10 +192,7 @@
             <input type="text" class="form-control" id="filtro-meses" name="filtro-meses" placeholder="Meses">
           </div>
           <div class="form-group col-sm-3">
-            <label>Elevacion</label>
-            <input type="text" class="form-control" id="filtro-elevacion" name="filtro-elevacion" placeholder="Metros">
-            <!-- <input type="file" id="exampleInputFile"> -->
-            <!-- <p class="help-block">Example block-level help text here.</p> -->
+            
           </div>
             <div class="form-group col-sm-3">
                 <label>&nbsp;</label>
@@ -216,13 +214,12 @@
                             <th>Departamento</th>
                             <th>Datos desde/hasta</th>
                             <th>Periodo de datos</th>
-                            <th>Elevacion (mts)</th>
+                            <th>Sensores</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for estacion in estaciones %}
                             <tr>
-                                <!-- <th scope="row">{{ estacion.pk }}</th> -->
                                 <th class="estacionRow" 
                                     data-id="{{ estacion.pk }}"
                                     data-nombre="{{ estacion.name }}"
@@ -239,7 +236,21 @@
                                 <td>{{ estacion.departamentoNombre }}</td>
                                 <td>{{ estacion.datosDesde }}</td>
                                 <td>{{ estacion.datosPeriodoMes|floatformat:0 }} (meses)</td>
-                                <td>{{ estacion.elevation|floatformat:0 }}</td>
+                                <td>
+                                    {% for sensor in estacion.getSensores %}
+                                        {% if sensor.variable == 1 %}
+                                            <a href="javascript:;" title="Viento" ><img src="/static/image/wind.png"></a>
+                                        {% endif %}
+
+                                        {% if sensor.variable == 2 %}
+                                            <a href="javascript:;" title="Radiacion" ><img src="/static/image/radiation.png"></a>
+                                        {% endif %}
+
+                                        {% if sensor.variable == 3 %}
+                                            <a href="javascript:;" title="Temperatura" ><img src="/static/image/temperature.png"></a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
                             </tr>
                         {% endfor %} 
                     </tbody>

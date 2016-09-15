@@ -94,7 +94,7 @@
                             <th>Departamento</th>
                             <th>Datos desde/hasta</th>
                             <th>Periodo de datos</th>
-                            <th>Elevacion (mts)</th>
+                            <th>Sensores</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,7 +117,21 @@
                                 <td>{{ estacion.departamentoNombre }}</td>
                                 <td>{{ estacion.datosDesde }}</td>
                                 <td>{{ estacion.datosPeriodoMes|floatformat:0 }} (meses)</td>
-                                <td>{{ estacion.elevation|floatformat:0 }}</td>
+                                <td>
+                                    {% for sensor in estacion.getSensores %}
+                                        {% if sensor.variable == 1 %}
+                                            <a href="javascript:;" title="Viento" ><img src="/static/image/wind.png"></a>
+                                        {% endif %}
+
+                                        {% if sensor.variable == 2 %}
+                                            <a href="javascript:;" title="Radiacion" ><img src="/static/image/radiation.png"></a>
+                                        {% endif %}
+
+                                        {% if sensor.variable == 3 %}
+                                            <a href="javascript:;" title="Temperatura" ><img src="/static/image/temperature.png"></a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
                             </tr>
                         {% endfor %} 
                     </tbody>

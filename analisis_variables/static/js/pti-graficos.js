@@ -338,14 +338,14 @@ EstacionGrafico.graficarVariable = function(elementoSelector, datos, variable)
         {
             fila['y'] = datos[i].temperatura;
             tituloGrafico = 'Registros de temperatura';
-            tituloEje = "Valores en grados celcius";
+            tituloEje = "Valores en grados Celsius";
         }
 
         if (variable == "radiation")
         {
             fila['y'] = datos[i].radiation;
             tituloGrafico = 'Registros de radiacion';
-            tituloEje = "Valores";
+            tituloEje = "Valores en vatios por metro cuadrado";
         }
 
         if (variable == "winddir50")
@@ -416,14 +416,14 @@ EstacionGrafico.graficarVariablePorAnio = function(elementoSelector, datos, nomb
             {
                 valoresAnio.push(variables['temperatura']);
                 tituloGrafico = 'Registros de temperatura';
-                tituloEje = "Valores en grados celcius";
+                tituloEje = "Valores en grados Celsius";
             }
 
             if (nombreVariable == "radiation")
             {
                 valoresAnio.push(variables['radiation']);
                 tituloGrafico = 'Registros de radiacion';
-                tituloEje = "Valores";
+                tituloEje = "Valores en vatios por metro cuadrado";
             }
 
             if (nombreVariable == "winddir50")

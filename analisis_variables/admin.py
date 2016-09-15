@@ -6,3 +6,5 @@ admin.site.register(Station, StationAdmin)
 admin.site.register(TypeStation, TypeStationAdmin)
 admin.site.register(Record, RecordAdmin)
 admin.site.register(Control, ControlAdmin)
+admin.site.register(Sensor, SensorAdmin)
+
